@@ -1,19 +1,7 @@
 <?php
 	require_once('user/models/db-settings.php');
 	require_once('config.php');
-    require_once('user/models/funcs.php');
-
-    $SOURCE_ID = "AF070B";
-
-    $leadStatus = "";
-    $leadReason = "";
-
-    $siteURL = getSiteURL();
-    $callbackString = "callback=".$siteURL."my/lead/status.php";
-
-    //var_dump($siteURL);
-    //var_dump($callbackString); die();
-
+	
     if ( 0 < $_FILES['file']['error'] ) {
 		echo 'Oops ! Something gone wrong !<br/>';
         echo 'Error: ' . $_FILES['file']['error'] . '<br>';
@@ -42,9 +30,7 @@
 		}
 
 		// Get & Parse CSV file
-		// $url = $integrate_api_test_url;
-        $url = $integrate_api_live_url."?".$callbackString;
-        //var_dump($url); die();
+		$url = $integrate_api_live_url;
 		$encfile = remove_utf8_bom(file($newFileName));
 		$csv = array_map('str_getcsv', $encfile);
 		// Insert master
@@ -52,7 +38,6 @@
 
 		foreach ($csv as $index => &$row) {
 			$item = array_combine($csv[0], $row);
-
 			if($index > 0){
 				$emptyValues = 0;
 				foreach ($row as $value) {
@@ -63,29 +48,35 @@
 				if($emptyValues != count($row)){
 					$query = http_build_query($item);
 
-                    $result = file_get_contents($url, false, stream_context_create(array(
-                        'http' => array(
-                            'method'  => 'POST',
-                            'header'  => 'Content-type: application/x-www-form-urlencoded',
-                            'content' => $query
-                        )
-                    )));
-
-                    $result = json_decode($result, true);
-
-                    $pushDataLead = array(
-                        'lead_id' => $result['result'][0],
-                        'source_id' => $SOURCE_ID,
-                        'source_alias' => $SOURCE_ID,
-                        'email' => $item['Email1'],
-                        'status' => $leadStatus,
-                        'user_id' => $user_id,
-                        'filename' => $_FILES['file']['name'],
-                        'reason' => $leadReason,
-                        'uploaded_at' => $uploaded_at_datetime,
-                        'ip' => $ip);
-                    pushLeadsToDatabase($pushDataLead, $mysqli);
-                    echo $index." is success\n";
+					if(isset($item['Zip']) && strlen($item['Zip']) < 5)
+					{
+						$row[] = "<?xml version='1.0' encoding='utf-8' ?><result><success>0</success><leadid/><errors><error>Invalid Length: Zip (must equal 5)</error></errors></result>";
+						array_push($array_items, $row);
+						echo $index." is error\n";
+					}else{
+						$result = file_get_contents($url, false, stream_context_create(array(
+							'http' => array(
+								'method'  => 'POST',
+								'header'  => 'Content-type: application/x-www-form-urlencoded',
+								'content' => $query
+							)
+						)));
+						
+						$xml = new SimpleXMLElement($result);	
+						if($xml->success == "0"){
+							$row[] = $result;
+							array_push($array_items, $row);
+							echo $index." is error\n";
+						}else{
+							$pushDataAcceptedLead = array("campaign_id" => $item['AppID'],
+								"email" => $item['Email'],
+								"user_id" => $user_id,
+								"uploaded_at" => $uploaded_at_datetime,
+								"filename" => $_FILES['file']['name']);
+							pushToDatabaseAcceptedLead($pushDataAcceptedLead, $mysqli);
+							echo $index." is success\n";
+						}
+					}
 				}else{
 					echo $index." is empty\n";
 				}
@@ -140,35 +131,16 @@
 	}
 
     function pushLeadsToDatabase($data, $context){
-        $isLeadIdExists = isLeadIdExists($data['lead_id']);
-
-        if ($isLeadIdExists == false) {
-            $sql = $context->prepare("INSERT INTO csv_status_leads (lead_id, source_id, source_alias, email, status,
+        $sql = $context->prepare("INSERT INTO csv_status_leads (lead_id, source_id, source_alias, email, status,
                                               user_id, filename, reason, uploaded_at, ip)
 										VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $sql->bind_param('sssssissss', $data['lead_id'], $data['source_id'], $data['source_alias'], $data['email'],
-                $data['status'], $data['user_id'], $data['filename'], $data['reason'],
-                $data['uploaded_at'], $data['ip']);
-            $sql->execute();
-            $insert_id = $sql->insert_id;
-            $sql->close();
-            return $insert_id;
-        } else {
-            $sql = $context->prepare("UPDATE csv_status_leads
-                                         SET status = ?,
-                                             user_id = ?,
-                                             filename = ?,
-                                             reason = ?,
-                                             uploaded_at = ?,
-                                             ip = ?
-                                       WHERE lead_id = ?");
-            $sql->bind_param('sisssss', $data['status'], $data['user_id'], $data['filename'], $data['reason'],
-                $data['uploaded_at'], $data['ip'], $data['lead_id']);
-            $sql->execute();
-            $insert_id = $sql->insert_id;
-            $sql->close();
-            return $insert_id;
-        }
+        $sql->bind_param('sssssissss', $data['lead_id'], $data['source_id'], $data['source_alias'], $data['email'],
+                                       $data['status'], $data['user_id'], $data['filename'], $data['reason'],
+                                       $data['uploaded_at'], $data['ip']);
+        $sql->execute();
+        $insert_id = $sql->insert_id;
+        $sql->close();
+        return $insert_id;
     }
 
 	function remove_utf8_bom($text)
@@ -177,7 +149,5 @@
 	    $text = preg_replace("/^$bom/", '', $text);
 	    return $text;
 	}
-
-
 
 ?>

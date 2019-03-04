@@ -1,3 +1,6 @@
+<?php
+ob_start();
+?>
 <html>
     <head>
            <meta charset="utf-8">
@@ -27,6 +30,9 @@
     <body>
     <?php
     require_once("models/config.php");
+
+    ob_flush();
+
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
 if ($loggedInUser->
@@ -43,9 +49,15 @@ checkPermission(array(2))){
             <a href='index_admin.php'>
               Dashboard
             </a>
-          </li><li>
-                <a href='leads_admin.php'>
-                    Accepted leads
+          </li>
+<!--            <li>-->
+<!--                <a href='leads_admin.php'>-->
+<!--                    Accepted leads-->
+<!--                </a>-->
+<!--            </li>-->
+            <li>
+                <a href='leads_statuses.php'>
+                    Leads
                 </a>
             </li>
           <li class="sidebar-brand" style="color: silver;">

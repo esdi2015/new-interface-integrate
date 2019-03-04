@@ -46,9 +46,15 @@ checkPermission(array(2))){
             <a href='index_admin.php'>
               Dashboard
             </a>
-          </li><li>
-                <a href='leads_admin.php'>
-                    Accepted leads
+          </li>
+<!--            <li>-->
+<!--                <a href='leads_admin.php'>-->
+<!--                    Accepted leads-->
+<!--                </a>-->
+<!--            </li>-->
+            <li>
+                <a href='leads_statuses.php'>
+                    Leads
                 </a>
             </li>
           <li class="sidebar-brand" style="color: silver;">

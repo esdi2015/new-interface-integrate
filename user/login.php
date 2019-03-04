@@ -1,3 +1,6 @@
+<?php
+ob_start();
+?>
 <html>
     <head>
         <meta charset="UTF-8"/>
@@ -63,7 +66,7 @@
 		  border-top-right-radius: 0;
 		}
 	</style>	
-	<?php 
+	<?php
 		require_once("models/config.php");
 		require_once("../config.php");
 
@@ -151,6 +154,7 @@ if(!empty($_POST))
 echo "<div id='main'>";
 
 echo resultBlock($errors,$successes);
+ob_flush();
 ?>
 	<div class="container" id="regbox">
 	<form class="form-signin" name="login" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">

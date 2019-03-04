@@ -6,6 +6,32 @@ http://usercake.com
 
 //Functions that do not interact with DB
 //------------------------------------------------------------------------------
+function getSiteURL() {
+    $siteURL='http'.(empty($_SERVER['HTTPS'])?'':'s').'://'.$_SERVER['HTTP_HOST'].'/';
+    return $siteURL;
+}
+
+
+
+function isLeadIdExists($leadId){
+    global $mysqli;
+    $sql = $mysqli->prepare("SELECT id
+		FROM csv_status_leads
+		WHERE
+		lead_id = ?
+		LIMIT 1");
+    $sql->bind_param("s", $leadId);
+    $sql->execute();
+    $sql->store_result();
+    $num_returns = $sql->num_rows;
+    $sql->close();
+
+    if ($num_returns > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 //Retrieve a list of all .php files in models/languages
 function getLanguageFiles()
@@ -77,7 +103,7 @@ function generateHash($plainText, $salt = null)
 	{
 		$salt = substr($salt, 0, 25);
 	}
-	
+
 	return $salt . sha1($salt . $plainText);
 }
 
@@ -175,6 +201,58 @@ function sanitize($str)
 {
 	return strtolower(strip_tags(trim(($str))));
 }
+
+
+function getAllAccounts()
+{
+    global $mysqli,$db_table_prefix;
+    $stmt = $mysqli->prepare("SELECT
+		id,
+		title
+		FROM ".$db_table_prefix."accounts");
+    $stmt->execute();
+    $stmt->bind_result($id, $title);
+    while ($stmt->fetch()){
+        $row[] = array('id' => $id, 'title' => $title);
+    }
+    $stmt->close();
+    return ($row);
+}
+
+
+function getAccountCampaigns($account_id=null)
+{
+    global $mysqli,$db_table_prefix;
+    if (is_null($account_id)) {
+        $stmt = $mysqli->prepare("SELECT
+		id,
+		source_id,
+		source_alias,
+		title,
+		post_url
+		FROM ".$db_table_prefix."campaigns");
+    } else {
+        $stmt = $mysqli->prepare("SELECT
+		id,
+		source_id,
+		source_alias,
+		title,
+		post_url
+		FROM ".$db_table_prefix."campaigns
+        WHERE account_id = ?" );
+        $stmt->bind_param("i", $account_id);
+    }
+
+    $stmt->execute();
+    $stmt->bind_result($id, $source_id, $source_alias, $title, $post_url);
+    while ($stmt->fetch()){
+        $row[] = array('id' => $id, 'source_id' => $source_id, 'source_alias' => $source_alias,
+                        'title' => $title, 'post_url' => $post_url);
+    }
+    $stmt->close();
+    return ($row);
+}
+
 
 //Functions that interact mainly with .users table
 //------------------------------------------------------------------------------
@@ -1174,7 +1252,7 @@ function securePage($uri){
 	//Separate document name from uri
 	$tokens = explode('/', $uri);
 	$page = $tokens[sizeof($tokens)-1];
-	global $mysqli,$db_table_prefix,$loggedInUser;
+	global $mysqli,$db_table_prefix,$loggedInUser,$master_account;
 	//retrieve page details
 	$stmt = $mysqli->prepare("SELECT 
 		id,

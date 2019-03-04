@@ -87,6 +87,14 @@ if ($action == "get_results") {
         ));
         die();
     }
+
+    if (isset($_POST['get_account_campaigns'])) {
+        $account_id = $_POST['account_id'];
+        $campaigns = getAccountCampaigns($account_id);
+        //var_dump($campaigns);
+        echo json_encode($campaigns);
+        die();
+    }
     
     if (isset($_POST['user_id'])) {
         if (isset($_POST['page'])) {

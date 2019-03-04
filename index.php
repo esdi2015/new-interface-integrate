@@ -1,3 +1,6 @@
+<?php
+ob_start();
+?>
 <html>
 
 <head>
@@ -74,7 +77,7 @@
         }
     </style>
     <input type="hidden" id="hidden_page" value="1" />
-    <?php 
+    <?php
 		require_once("user/models/config.php");
 		require_once("config.php");
         //echo "<div style='text-align: center; font-size: 36px;'><b>SITE IS IN TEST MODE !!!!!</b></div>";
@@ -202,3 +205,6 @@
         </script>
 </body>
 </html>
+<?php
+ob_flush();
+?>

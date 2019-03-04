@@ -70,6 +70,11 @@ checkPermission(array(2))){
                     Accepted leads
                 </a>
             </li>
+            <li>
+                <a href='leads_statuses.php'>
+                    Leads statuses
+                </a>
+            </li>
             <li class="sidebar-brand" style="color: silver;">
                 Administration
             </li>
@@ -227,7 +232,7 @@ checkPermission(array(2))){
                     var record = $(this).data('record');
                     $('#SelectedRowList').html($selectedRows.length);
                 });
-            },
+            }
         });
 
         $('.jtable').wrap('<div class="jtable-main-container scroll-content" />');
