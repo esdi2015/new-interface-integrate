@@ -1,16 +1,9 @@
 <?php
-require_once("models/config.php");
-if (!securePage($_SERVER['PHP_SELF'])){die();}
-if(isUserLoggedIn()) {
-if ($loggedInUser->
-checkPermission(array(2))){
-$campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-  
-  <head>
-    <meta charset="utf-8">
+<html>
+    <head>
+           <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
@@ -33,11 +26,19 @@ $campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-  </head>
-  
-  <body>
-    <div id="wrapper">
+    <![endif]-->  </head>
+    <body>
+    <?php
+    require_once("models/config.php");
+
+    ob_flush();
+
+if (!securePage($_SERVER['PHP_SELF'])){die();}
+if(isUserLoggedIn()) {
+if ($loggedInUser->checkPermission(array(2))){
+    $accounts = getAllAccounts();
+	?>
+     <div id="wrapper">
       <div id="sidebar-wrapper">
           <?php
           require_once(SITE_PATH . '/user/left_nav_admin.php');
@@ -48,34 +49,51 @@ $campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
         <div class="container-fluid">
           <div class="row">
             <div class="col-lg-12">
-                <?php
-                //var_dump($campaignData);
-                ?>
-                <div id='main'>
-                    <?php
-                    echo "
-                    <table class='table table-condensed'>
-                        <tr>
-                            <th>Campaign</th><th>Account</th><th>Source ID</th><th>Source Alias</th><th></th>
-                        </tr>";
+<?php
+//Forms posted
+if(!empty($_POST))
+{
+	$errors = array();
+}
 
-                        //Cycle through users
-                        foreach ($campaignData as $v1) {
-                        echo "
-                        <tr>
-                            <td><a href='admin_campaign.php?id=".$v1['id']."'>".$v1['title']."</a></td>
-                            <td>".$v1['acc_name']."</td>
-                            <td>".$v1['source_id']."</td>
-                            <td>".$v1['source_alias']."</td>
-                            <td></td>
-                        </tr>";
-                        }
-                        echo "
-                    </table>
-                    ";
-                    ?>
-                </div>
-            </div>
+echo resultBlock($errors,$successes);
+
+echo "
+<form name='newUser' action='".$_SERVER['PHP_SELF']."' method='post' class='form-signin'>
+<h2 class='form-signin-heading'>New campaign</h2>
+<p>
+<label>Campaign Name:</label>
+<input type='text' name='campaign_name' class='form-control' value='".$_POST["campaign_name"]."' />
+</p>
+<p>
+<label>Source ID:</label>
+<input type='text' name='source_id' class='form-control' value='".$_POST["source_id"]."' />
+</p>
+<p>
+<label>Source Alias:</label>
+<input type='text' name='source_alias' class='form-control' value='".$_POST["source_alias"]."' />
+</p>
+<p>
+<label>POST URL:</label>
+<input type='text' name='post_url' class='form-control' value='".$_POST["post_url"]."' />
+</p>
+<p>
+<label>Account:</label>
+<select id='account_select' name='account_select' class='form-control'>";
+    foreach ($accounts as $acc){
+        echo "<option value='".$acc['id']."'>".$acc['title']."</option>";
+    }
+echo "
+</select>
+</p>
+<p>
+<label>&nbsp;<br>
+<input type='submit' value='Create' class='btn btn-lg btn-primary btn-block'/>
+</p>
+
+</form>";
+?>
+</div>
           </div>
         </div>
       </div>

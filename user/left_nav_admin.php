@@ -14,11 +14,6 @@ if (!securePage($_SERVER['PHP_SELF'])){die();}
             Dashboard
         </a>
     </li>
-    <!--               <li>-->
-    <!--                <a href='leads_admin.php'>-->
-    <!--                    Accepted leads-->
-    <!--                </a>-->
-    <!--            </li>-->
     <li>
         <a href='leads_statuses.php'>
             Leads
@@ -34,12 +29,17 @@ if (!securePage($_SERVER['PHP_SELF'])){die();}
     </li>
     <li>
         <a href='register.php'>
-            Create new user
+            Add user
         </a>
     </li>
     <li>
         <a href='admin_users.php'>
             Manage users
+        </a>
+    </li>
+    <li>
+        <a href='new_campaign.php'>
+            Add campaign
         </a>
     </li>
     <li>

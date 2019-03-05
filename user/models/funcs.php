@@ -202,6 +202,8 @@ function sanitize($str)
 	return strtolower(strip_tags(trim(($str))));
 }
 
+// ===============================
+// functions accounts, campaigns
 
 function getAllAccounts()
 {
@@ -248,6 +250,32 @@ function getAccountCampaigns($account_id=null)
     while ($stmt->fetch()){
         $row[] = array('id' => $id, 'source_id' => $source_id, 'source_alias' => $source_alias,
                         'title' => $title, 'post_url' => $post_url);
+    }
+    $stmt->close();
+    return ($row);
+}
+
+
+
+function fetchAllCampaigns()
+{
+    global $mysqli,$db_table_prefix;
+    $stmt = $mysqli->prepare("SELECT
+		c.id,
+		-- c.account_id,
+		a.title as acc_name,
+		c.source_id,
+		c.source_alias,
+		c.title,
+		c.post_url
+		FROM ".$db_table_prefix."campaigns c, ".$db_table_prefix."accounts a
+		WHERE c.account_id = a.id");
+
+    $stmt->execute();
+    $stmt->bind_result($id, $acc_name, $source_id, $source_alias, $title, $post_url);
+    while ($stmt->fetch()){
+        $row[] = array('id' => $id, 'acc_name' => $acc_name, 'source_id' => $source_id,
+            'source_alias' => $source_alias, 'title' => $title, 'post_url' => $post_url);
     }
     $stmt->close();
     return ($row);

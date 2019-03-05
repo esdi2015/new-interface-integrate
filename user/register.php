@@ -41,67 +41,9 @@ checkPermission(array(2))){
 	?>
      <div id="wrapper">
       <div id="sidebar-wrapper">
-        <ul class="sidebar-nav">
-        <li class="sidebar-brand" style="color: silver;">
-              Index
-          </li>
-           <li>
-            <a href='index_admin.php'>
-              Dashboard
-            </a>
-          </li>
-<!--            <li>-->
-<!--                <a href='leads_admin.php'>-->
-<!--                    Accepted leads-->
-<!--                </a>-->
-<!--            </li>-->
-            <li>
-                <a href='leads_statuses.php'>
-                    Leads
-                </a>
-            </li>
-          <li class="sidebar-brand" style="color: silver;">
-              Administration
-          </li>
-          <li>
-            <a href='admin_configuration.php'>
-              Configuration
-            </a>
-          </li>
-          <li>
-            <a href='register.php'>
-              Create new user
-            </a>
-          </li>
-          <li>
-            <a href='admin_users.php'>
-              Manage users
-            </a>
-          </li>
-<!--<li>
-            <a href='admin_permissions.php'>
-              Manage permissions
-            </a>
-          </li>-->
-          <li class="sidebar-brand" style="color: silver;">
-              Current user
-          </li>
-          <li>
-            <a href='user_settings.php'>
-              User Settings
-            </a>
-          </li>
-          <li>
-            <a href='<?php echo $websiteUrl; ?>'>
-              My history
-            </a>
-          </li>
-          <li>
-            <a href='logout.php'>
-              Logout
-            </a>
-          </li>
-        </ul>
+          <?php
+          require_once(SITE_PATH . '/user/left_nav_admin.php');
+          ?>
       </div>
       
       <div id="page-content-wrapper">
