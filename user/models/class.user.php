@@ -95,10 +95,13 @@ class loggedInUser {
 				}
 			}
 		}
+        //var_dump($access);
+        //var_dump($this->user_id, $master_account);
 		if ($access == 1)
 		{
 			return true;
 		}
+
 		if ($this->user_id == $master_account){
 			return true;	
 		}

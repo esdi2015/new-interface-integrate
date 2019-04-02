@@ -1,6 +1,7 @@
 <?php
 require_once('models/db-settings.php');
 require_once('../config.php');
+require_once('models/config.php');
 require_once('models/funcs.php');
 
 try {
@@ -48,11 +49,21 @@ try {
         
         
         # $query = "SELECT id, campaignid, email, userid, filename, uploadedat FROM csv_accepted_leads ".$filters." ORDER BY " . $jtSorting . " LIMIT " . $_GET["jtStartIndex"] . "," . $_GET["jtPageSize"];
-        $query = "SELECT id, lead_id, source_id, source_alias, email, status,
+        if ($IS_SUPER_ADMIN) {
+            $query = "SELECT id, lead_id, source_id, source_alias, email, status,
                     user_id, filename, reason, uploaded_at
                     FROM csv_status_leads ".$filters."
                     ORDER BY " . $jtSorting . " LIMIT " . $_GET["jtStartIndex"] . "," . $_GET["jtPageSize"];
+        } elseif ($IS_CAMPAIGN_MANAGER) {
+            $query = "SELECT id, lead_id, source_id, source_alias, email, status,
+                    user_id, filename, reason, uploaded_at
+                    FROM csv_status_leads ".$filters."
+                    WHERE user_id = ".$loggedInUser->user_id."
+                    ORDER BY " . $jtSorting . " LIMIT " . $_GET["jtStartIndex"] . "," . $_GET["jtPageSize"];
+        }
 
+        //var_dump($query);
+        //var_dump(strstr($query, 'LIMIT', true));
         //Get record count
         $result = $mysqli->prepare(strstr($query, 'LIMIT', true));
         //echo strstr($query, 'LIMIT', true);

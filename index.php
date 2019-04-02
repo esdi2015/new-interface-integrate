@@ -105,17 +105,24 @@ ob_start();
           <div>
           <p class="nav navbar-text">
           You are signed in as <b>'.$loggedInUser->username;
-          if ($loggedInUser->checkPermission(array(2))){
-         	echo '(<a href="user/index_admin.php" class = "navbar-link">Administration panel</a>)';
-          }
+          echo '(<a href="user/index_admin.php" class = "navbar-link">Administration panel</a>)';
+//          if ($loggedInUser->checkPermission(array(1,2,3))){
+//         	echo '(<a href="user/index_admin.php" class = "navbar-link">Administration panel</a>)';
+//          }
     echo '</b>
-          </p>
-          <p class="nav navbar-text">
-          <a href="javascript:changePage(1, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-list"></span> My History (<i id="history_count"></i>)</a>
-          </p>
-          <p class="nav navbar-text">
-          <a href="javascript:changePage(2, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-upload"></span> New Upload</a>
-          </p>
+          </p>';
+
+    if (!$loggedInUser->checkPermission(array(3))){
+        echo '
+            <p class="nav navbar-text">
+            <a href="javascript:changePage(1, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-list"></span> My History (<i id="history_count"></i>)</a>
+            </p>
+            <p class="nav navbar-text">
+            <a href="javascript:changePage(2, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-upload"></span> New Upload</a>
+            </p>';
+    }
+
+    echo '
           </div>
           <div>
           <p class="nav navbar-text navbar-right" style="padding-right: 25px;">
@@ -200,8 +207,14 @@ ob_start();
                     }
                 }
             }
+            <?php
+            if ($loggedInUser->checkPermission(array(3))){
+                echo "changePage(1, null);";
+            } else {
+                echo "changePage(2, null);";
+            }
+            ?>
 
-            changePage(1, null);
         </script>
 </body>
 </html>

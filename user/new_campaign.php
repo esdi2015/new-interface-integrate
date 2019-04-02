@@ -35,7 +35,7 @@ ob_start();
 
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
-if ($loggedInUser->checkPermission(array(2))){
+if ($loggedInUser->checkPermission(array(2,3))){
     $accounts = getAllAccounts();
 	?>
      <div id="wrapper">
@@ -50,10 +50,27 @@ if ($loggedInUser->checkPermission(array(2))){
           <div class="row">
             <div class="col-lg-12">
 <?php
+$errors = array();
+$successes = array();
+
 //Forms posted
 if(!empty($_POST))
 {
-	$errors = array();
+
+    $campaign["title"] = trim($_POST["campaign_name"]);
+    $campaign["source_id"] = trim($_POST["source_id"]);
+    $campaign["source_alias"] = trim($_POST["source_alias"]);
+    $campaign["post_url"] = trim($_POST["post_url"]);
+    $campaign["email_field"] = trim($_POST["email_field"]);
+    $campaign["account_id"] = trim($_POST["account_select"]);
+
+    $new_campaign = createCampaign($campaign);
+    if ($new_campaign == true) {
+        $successes[] = lang("CAMPAIGN_ADDED");
+    } else {
+        $errors[] = lang("SQL_ERROR");
+    }
+
 }
 
 echo resultBlock($errors,$successes);
@@ -78,21 +95,35 @@ echo "
 <input type='text' name='post_url' class='form-control' value='".$_POST["post_url"]."' />
 </p>
 <p>
+<label>Email field name:</label>
+<input type='text' name='email_field' value='".$_POST['email_field']."' class='form-control' />
+</p>
+<p>
 <label>Account:</label>
 <select id='account_select' name='account_select' class='form-control'>";
-    foreach ($accounts as $acc){
+foreach ($accounts as $acc){
+    if ($_POST['account_select'] == $acc['id']) {
+        echo "<option value='".$acc['id']."' selected='selected'>".$acc['title']."</option>";
+    } else {
         echo "<option value='".$acc['id']."'>".$acc['title']."</option>";
     }
+}
 echo "
 </select>
 </p>
-<p>
-<label>&nbsp;<br>
-<input type='submit' value='Create' class='btn btn-lg btn-primary btn-block'/>
-</p>
+<p>";
 
-</form>";
+if (count($successes) == 0) {
+echo "
+<label>&nbsp;<br>
+<input type='submit' value='Create' class='btn btn-lg btn-primary btn-block' />";
+} else {
+echo "<a href='admin_campaigns.php'>Manage campaigns</a>";
+}
+
 ?>
+</p>
+</form>
 </div>
           </div>
         </div>

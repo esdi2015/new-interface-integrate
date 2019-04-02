@@ -20,6 +20,9 @@
 <script type="text/javascript">
     function create_table(page, count) {
         var form_data2 = new FormData();
+        <?php
+        if ($IS_CAMPAIGN_MANAGER == true && $IS_SUPER_ADMIN == false && $IS_ADMIN == false) {echo "showAll = false;";}
+        ?>
         if(!showAll){
             form_data2.append('user_id', <?php if(isset($_GET["uid"])){echo $_GET["uid"];}else{echo $loggedInUser->user_id;}?>);
         }
@@ -29,6 +32,7 @@
         if(count != 0) {
             form_data2.append('count', count);
         }
+        //console.log(showAll);
         $.ajax({
             url: '<?php echo $websiteUrl; ?>get.php',
             dataType: 'json',

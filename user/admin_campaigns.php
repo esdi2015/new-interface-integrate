@@ -1,9 +1,9 @@
 <?php
 require_once("models/config.php");
+
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
-if ($loggedInUser->
-checkPermission(array(2))){
+if ($loggedInUser->checkPermission(array(2,3))){
 $campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
 ?>
 <!DOCTYPE html>
@@ -56,7 +56,7 @@ $campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
                     echo "
                     <table class='table table-condensed'>
                         <tr>
-                            <th>Campaign</th><th>Account</th><th>Source ID</th><th>Source Alias</th><th></th>
+                            <th>Campaign</th><th>Account</th><th>Source ID</th><th>Source Alias</th><th>Status</th><th></th>
                         </tr>";
 
                         //Cycle through users
@@ -67,6 +67,7 @@ $campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
                             <td>".$v1['acc_name']."</td>
                             <td>".$v1['source_id']."</td>
                             <td>".$v1['source_alias']."</td>
+                            <td>".$v1['campaign_status']."</td>
                             <td></td>
                         </tr>";
                         }

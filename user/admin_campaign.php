@@ -2,8 +2,7 @@
 require_once("models/config.php");
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
-if ($loggedInUser->
-checkPermission(array(2))){
+if ($loggedInUser->checkPermission(array(2,3))){
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,142 +50,59 @@ checkPermission(array(2))){
 <?php
 $campaignId = $_GET['id'];
 
-//Check if selected user exists
-if(!userIdExists($userId)){
-	header("Location: admin_users.php"); die();
+//Check if selected campaign exists
+if(!campaignIdExists($campaignId)){
+	header("Location: admin_campaigns.php"); die();
 }
 
-$userdetails = fetchUserDetails(NULL, NULL, $userId); //Fetch user details
-
+$campaign_details = fetchCampaignDetails($campaignId); //Fetch campaign details
+$accounts = getAllAccounts();
+//var_dump($campaign_details);
+$errors = array();
+$successes = array();
 //Forms posted
 if(!empty($_POST))
-{	
-	//Delete selected account
-	if(!empty($_POST['delete'])){
-		$deletions = $_POST['delete'];
-		if ($deletion_count = deleteUsers($deletions)) {
-			$successes[] = lang("ACCOUNT_DELETIONS_SUCCESSFUL", array($deletion_count));
-		}
-		else {
-			$errors[] = lang("SQL_ERROR");
-		}
-	}
-	else
-	{
-		//Update display name
-		if ($userdetails['display_name'] != $_POST['display']){
-			$displayname = trim($_POST['display']);
-			
-			//Validate display name
-			if(displayNameExists($displayname))
-			{
-				$errors[] = lang("ACCOUNT_DISPLAYNAME_IN_USE",array($displayname));
-			}
-			elseif(minMaxRange(5,25,$displayname))
-			{
-				$errors[] = lang("ACCOUNT_DISPLAY_CHAR_LIMIT",array(5,25));
-			}
-			elseif(!ctype_alnum($displayname)){
-				$errors[] = lang("ACCOUNT_DISPLAY_INVALID_CHARACTERS");
-			}
-			else {
-				if (updateDisplayName($userId, $displayname)){
-					$successes[] = lang("ACCOUNT_DISPLAYNAME_UPDATED", array($displayname));
-				}
-				else {
-					$errors[] = lang("SQL_ERROR");
-				}
-			}
-			
-		}
-		else {
-			$displayname = $userdetails['display_name'];
-		}
-		
-		//Activate account
-		if(isset($_POST['activate']) && $_POST['activate'] == "activate"){
-			if (setUserActive($userdetails['activation_token'])){
-				
-			}
-			else {
-				$errors[] = lang("SQL_ERROR");
-			}
-		}
+{
+    $campaign_updates = $campaign_details;
+    if ($campaign_details['title'] != $_POST['title']) {
+        $campaign_updates['title'] = trim($_POST['title']);
+    }
 
-		if(!isset($_POST['activate'])){
-			if (setUserInactive($userId)){
-				
-			}
-			else {
-				$errors[] = lang("SQL_ERROR");
-			}
-		}
-		
-		//Update email
-		if ($userdetails['email'] != $_POST['email']){
-			$email = trim($_POST["email"]);
-			
-			//Validate email
-			if(!isValidEmail($email))
-			{
-				$errors[] = lang("ACCOUNT_INVALID_EMAIL");
-			}
-			elseif(emailExists($email))
-			{
-				$errors[] = lang("ACCOUNT_EMAIL_IN_USE",array($email));
-			}
-			else {
-				if (updateEmail($userId, $email)){
-					$successes[] = lang("ACCOUNT_EMAIL_UPDATED");
-				}
-				else {
-					$errors[] = lang("SQL_ERROR");
-				}
-			}
-		}
-		
-		//Update title
-		if ($userdetails['title'] != $_POST['title']){
-			$title = trim($_POST['title']);
-			
-			//Validate title
-			if(minMaxRange(1,50,$title))
-			{
-				$errors[] = lang("ACCOUNT_TITLE_CHAR_LIMIT",array(1,50));
-			}
-			else {
-				if (updateTitle($userId, $title)){
-					$successes[] = lang("ACCOUNT_TITLE_UPDATED", array ($displayname, $title));
-				}
-				else {
-					$errors[] = lang("SQL_ERROR");
-				}
-			}
-		}
-		
-		//Remove permission level
-		if(!empty($_POST['removePermission'])){
-			$remove = $_POST['removePermission'];
-			if ($deletion_count = removePermission($remove, $userId)){
-				$successes[] = lang("ACCOUNT_PERMISSION_REMOVED", array ($deletion_count));
-			}
-			else {
-				$errors[] = lang("SQL_ERROR");
-			}
-		}
-		
-		if(!empty($_POST['addPermission'])){
-			$add = $_POST['addPermission'];
-			if ($addition_count = addPermission($add, $userId)){
-				$successes[] = lang("ACCOUNT_PERMISSION_ADDED", array ($addition_count));
-			}
-			else {
-				$errors[] = lang("SQL_ERROR");
-			}
-		}
-		
-		$userdetails = fetchUserDetails(NULL, NULL, $userId);
-	}
+    if ($campaign_details['account_id'] != $_POST['account_select']) {
+        $campaign_updates['account_id'] = trim($_POST['account_select']);
+    }
+
+    if ($campaign_details['source_id'] != $_POST['source_id']) {
+        $campaign_updates['source_id'] = trim($_POST['source_id']);
+    }
+
+    if ($campaign_details['source_alias'] != $_POST['source_alias']) {
+        $campaign_updates['source_alias'] = trim($_POST['source_alias']);
+    }
+
+    if ($campaign_details['post_url'] != $_POST['post_url']) {
+        $campaign_updates['post_url'] = trim($_POST['post_url']);
+    }
+
+    if ($campaign_details['email_field'] != $_POST['email_field']) {
+        $campaign_updates['email_field'] = trim($_POST['email_field']);
+    }
+
+    if ($campaign_details['campaign_status'] != $_POST['campaign_status']) {
+        $campaign_updates['campaign_status'] = trim($_POST['campaign_status']);
+    }
+
+    $campaign_updates['id'] = $campaignId;
+    // $campaign_details = $campaign_updates;
+
+    $update_campaign = updateCampaign($campaign_updates);
+    if ($update_campaign == true) {
+        $campaign_details = $campaign_updates;
+        $successes[] = lang("CAMPAIGN_UPDATED");
+    } else {
+        $errors[] = lang("SQL_ERROR");
+    }
+
 }
 
 $userPermission = fetchUserPermissions($userId);
@@ -197,91 +113,65 @@ echo "<div id='main'>";
 echo resultBlock($errors,$successes);
 
 echo "
-<form name='adminUser' action='".$_SERVER['PHP_SELF']."?id=".$userId."' method='post'>
+<form name='adminCampaign' action='".$_SERVER['PHP_SELF']."?id=".$campaignId."' method='post'>
 <table class='table table-condensed'><tr><td>
-<h3>User Information</h3>
+<h3>Campaign Information</h3>
 <div id='regbox'>
 <p>
 <label>ID:</label>
-".$userdetails['id']."
+".$campaign_details['id']."
 </p>
 <p>
-<label>Username:</label>
-".$userdetails['user_name']."
+<label>Campaign Name:</label>
+<input type='text' name='title' value='".$campaign_details['title']."' class='form-control' />
 </p>
 <p>
-<label>Display Name:</label>
-<input type='text' name='display' value='".$userdetails['display_name']."' class='form-control' />
+<label>Source ID:</label>
+<input type='text' name='source_id' value='".$campaign_details['source_id']."' class='form-control' />
 </p>
 <p>
-<label>Email:</label>
-<input type='text' name='email' value='".$userdetails['email']."' class='form-control' />
+<label>Source Alias:</label>
+<input type='text' name='source_alias' value='".$campaign_details['source_alias']."' class='form-control' />
 </p>
 <p>
-<label>Active:</label>";
-
-//Display activation link, if account inactive
-if ($userdetails['active'] == '1'){
-	echo "<input type='checkbox' name='activate' id='activate' value='activate' checked>";	
+<label>POST URL:</label>
+<input type='text' name='post_url' value='".$campaign_details['post_url']."' class='form-control' />
+</p>
+<p>
+<label>Email field name:</label>
+<input type='text' name='email_field' value='".$campaign_details['email_field']."' class='form-control' />
+</p>
+<p>
+<label>Account:</label>
+<!--<input type='text' name='account_select' value='".$campaign_details['account_id']."' class='form-control' />-->
+<select id='account_select' name='account_select' class='form-control'>";
+foreach ($accounts as $acc){
+    if ($campaign_details['account_id'] == $acc['id']) {
+        echo "<option value='".$acc['id']."' selected='selected'>".$acc['title']."</option>";
+    } else {
+        echo "<option value='".$acc['id']."'>".$acc['title']."</option>";
+    }
 }
-else{
-	echo "<input type='checkbox' name='activate' id='activate' value='activate'>";	
+echo "
+</select>
+</p>
+<label>Campaign status:</label>
+<select id='campaign_status' name='campaign_status' class='form-control'>";
+foreach ($CAMPAIGN_STATUSES as $status){
+    if ($campaign_details['campaign_status'] == $status) {
+        echo "<option value='".$status."' selected='selected'>".$status."</option>";
+    } else {
+        echo "<option value='".$status."'>".$status."</option>";
+    }
 }
+echo "
+</select>
+</p>
+";
 
 echo "
-</p>
 <p>
-<label>Title:</label>
-<input type='text' name='title' value='".$userdetails['title']."' class='form-control' />
-</p>
-<p>
-<label>Sign Up:</label>
-".date("j M, Y", $userdetails['sign_up_stamp'])."
-</p>
-<p>
-<label>Last Sign In:</label>";
-
-//Last sign in, interpretation
-if ($userdetails['last_sign_in_stamp'] == '0'){
-	echo "Never";	
-}
-else {
-	echo date("j M, Y", $userdetails['last_sign_in_stamp']);
-}
-
-echo "
-</p>
-<p>
-<label>Delete:</label>
-<input type='checkbox' name='delete[".$userdetails['id']."]' id='delete[".$userdetails['id']."]' value='".$userdetails['id']."'>
-</p>
-<p>
-<label>&nbsp;</label>
 <input type='submit' value='Update' class='btn btn-default' />
-</p>
-</div>
-</td>
-<td>
-<h3>Permission Membership</h3>
-<div id='regbox'>
-<p>Remove Permission:";
-
-//List of permission levels user is apart of
-foreach ($permissionData as $v1) {
-	if(isset($userPermission[$v1['id']])){
-		echo "<br><input type='checkbox' name='removePermission[".$v1['id']."]' id='removePermission[".$v1['id']."]' value='".$v1['id']."'> ".$v1['name'];
-	}
-}
-
-//List of permission levels user is not apart of
-echo "</p><p>Add Permission:";
-foreach ($permissionData as $v1) {
-	if(!isset($userPermission[$v1['id']])){
-		echo "<br><input type='checkbox' name='addPermission[".$v1['id']."]' id='addPermission[".$v1['id']."]' value='".$v1['id']."'> ".$v1['name'];
-	}
-}
-
-echo"
 </p>
 </div>
 </td>

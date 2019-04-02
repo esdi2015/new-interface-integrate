@@ -4,6 +4,9 @@
     require_once('user/models/funcs.php');
 
     $SOURCE_ID = "AF070B";
+    $source_id = "";
+    $source_alias = "";
+    $integrate_api_live_url = "";
 
     $leadStatus = "";
     $leadReason = "";
@@ -11,13 +14,17 @@
     $siteURL = getSiteURL();
     $callbackString = "callback=".$siteURL."my/lead/status.php";
 
-    //var_dump($siteURL);
-    //var_dump($callbackString); die();
-
     if ( 0 < $_FILES['file']['error'] ) {
 		echo 'Oops ! Something gone wrong !<br/>';
         echo 'Error: ' . $_FILES['file']['error'] . '<br>';
     } else {
+        $campaign_id = $_POST['campaign_id'];
+        $campaign = fetchCampaignDetails($campaign_id);
+        $source_id = $campaign['source_id'];
+        $source_alias = $campaign['source_alias'];
+        $integrate_api_live_url = $campaign['post_url'];
+        $email_field = $campaign['email_field'];
+
 		$user_id = $_POST['user_id'];
 		$uploaded_at_datetime = date('Y-m-d H:i:s');
 		// Move temp file
@@ -52,7 +59,6 @@
 
 		foreach ($csv as $index => &$row) {
 			$item = array_combine($csv[0], $row);
-
 			if($index > 0){
 				$emptyValues = 0;
 				foreach ($row as $value) {
@@ -63,6 +69,14 @@
 				if($emptyValues != count($row)){
 					$query = http_build_query($item);
 
+                    date_default_timezone_set('Europe/Kiev');
+                    $date_now = date('Y-m-d H:i:s');
+                    $log_file = 'log_result.txt';
+
+                    file_put_contents($log_file, "\n === ".$date_now." === \n", FILE_APPEND | LOCK_EX);
+                    file_put_contents($log_file, "\nurl\n", FILE_APPEND | LOCK_EX);
+                    file_put_contents($log_file, $url, FILE_APPEND | LOCK_EX);
+
                     $result = file_get_contents($url, false, stream_context_create(array(
                         'http' => array(
                             'method'  => 'POST',
@@ -71,19 +85,28 @@
                         )
                     )));
 
+                    file_put_contents($log_file, "\nresult\n", FILE_APPEND | LOCK_EX);
+                    file_put_contents($log_file, $result, FILE_APPEND | LOCK_EX);
+
                     $result = json_decode($result, true);
+
+                    file_put_contents($log_file, "\nresult (json_decode)\n", FILE_APPEND | LOCK_EX);
+                    file_put_contents($log_file, $result."\n\n", FILE_APPEND | LOCK_EX);
+
 
                     $pushDataLead = array(
                         'lead_id' => $result['result'][0],
-                        'source_id' => $SOURCE_ID,
-                        'source_alias' => $SOURCE_ID,
-                        'email' => $item['Email1'],
+                        'source_id' => $source_id,
+                        'source_alias' => $source_alias,
+                        'email' => $item[$email_field],
                         'status' => $leadStatus,
                         'user_id' => $user_id,
                         'filename' => $_FILES['file']['name'],
                         'reason' => $leadReason,
                         'uploaded_at' => $uploaded_at_datetime,
-                        'ip' => $ip);
+                        'ip' => $ip,
+                        'campaign_id' => $campaign_id);
+
                     pushLeadsToDatabase($pushDataLead, $mysqli);
                     echo $index." is success\n";
 				}else{
@@ -97,8 +120,11 @@
 				"filename" => $_FILES['file']['name'],
 				"ip" => $ip,
 				"result" => $newFileNameDownload,
-				"errors_count" => count($array_items));
+				"errors_count" => count($array_items),
+                "campaign_id" => $campaign_id);
+
 		pushToDatabase($pushData, $mysqli, true);
+
 		if(count($array_items) > 0){
 			$fp = fopen($newFileNameDownload, 'w');
 			$csv[0][] = "ErrorResult";
@@ -113,7 +139,7 @@
     }
 
     function pushToDatabaseAcceptedLead($data, $context){
-		$sql = $context->prepare("INSERT INTO csv_accepted_leads (campaignid,email,userid,filename,uploadedat)
+		$sql = $context->prepare("INSERT INTO csv_accepted_leads (campaignid, email, userid, filename, uploadedat)
 										VALUES (?, ?, ?, ?, ?)");
 		$sql->bind_param('ssiss', $data['campaign_id'], $data['email'], $data['user_id'],$data['filename'], $data['uploaded_at']);
 		$sql->execute();
@@ -124,15 +150,17 @@
 	
 	function pushToDatabase($data, $context, $top){
 		if($top){
-			$sql = $context->prepare("INSERT INTO csv_uploaded_files (user_id,uploaded_at,filename,ip,result,errors_count)
-										VALUES (?, ?, ?, ?, ?, ?)");
-			$sql->bind_param('issssi', $data['user_id'],$data['uploaded_at'],$data['filename'],$data['ip'],$data['result'],$data['errors_count']);
+			$sql = $context->prepare("INSERT INTO csv_uploaded_files (user_id, uploaded_at, filename, ip,
+                                      result, errors_count, campaign_id)
+										VALUES (?, ?, ?, ?, ?, ?, ?)");
+			$sql->bind_param('issssii', $data['user_id'], $data['uploaded_at'], $data['filename'], $data['ip'],
+                                        $data['result'], $data['errors_count'], $data['campaign_id']);
 			$sql->execute();
 			$insert_id = $sql->insert_id;
 			$sql->close();
 			return $insert_id;
 		}else{
-			$sql = $context->prepare("INSERT INTO csv_uploaded_files_results (parent_id,result,error_line) 
+			$sql = $context->prepare("INSERT INTO csv_uploaded_files_results (parent_id, result, error_line)
 				VALUES (".$data['parent_id'].", '".$data['result']."', ".$data['error_line'].")");
 			$sql->execute();
 			$sql->close();
@@ -144,11 +172,11 @@
 
         if ($isLeadIdExists == false) {
             $sql = $context->prepare("INSERT INTO csv_status_leads (lead_id, source_id, source_alias, email, status,
-                                              user_id, filename, reason, uploaded_at, ip)
-										VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $sql->bind_param('sssssissss', $data['lead_id'], $data['source_id'], $data['source_alias'], $data['email'],
+                                              user_id, filename, reason, uploaded_at, ip, campaign_id)
+										VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $sql->bind_param('sssssissssi', $data['lead_id'], $data['source_id'], $data['source_alias'], $data['email'],
                 $data['status'], $data['user_id'], $data['filename'], $data['reason'],
-                $data['uploaded_at'], $data['ip']);
+                $data['uploaded_at'], $data['ip'], $data['campaign_id']);
             $sql->execute();
             $insert_id = $sql->insert_id;
             $sql->close();
@@ -177,7 +205,4 @@
 	    $text = preg_replace("/^$bom/", '', $text);
 	    return $text;
 	}
-
-
-
 ?>

@@ -221,6 +221,62 @@ function getAllAccounts()
     return ($row);
 }
 
+function getUserAttachedAccounts($user_id)
+{
+    global $mysqli,$db_table_prefix;
+    $obj_type = 'account';
+    $stmt = $mysqli->prepare("SELECT
+		obj_id
+		FROM ".$db_table_prefix."user_attached
+		WHERE type = ?
+		AND user_id = ?");
+    $stmt->bind_param("si", $obj_type, $user_id);
+    $stmt->execute();
+    $stmt->bind_result($obj_id);
+    while ($stmt->fetch()){
+        $row[] = array('obj_id' => $obj_id);
+    }
+    $stmt->close();
+    return ($row);
+}
+
+
+function insertUserAttachedAccounts($user_id, $accounts)
+{
+    global $mysqli,$db_table_prefix;
+    $obj_type = 'account';
+    $i = 0;
+    //var_dump($accounts[0], $user_id, $obj_type); die();
+    $stmt = $mysqli->prepare("INSERT INTO ".$db_table_prefix."user_attached
+            (user_id, obj_id, type)
+            VALUES
+            (?, ?, ?)");
+    if (is_array($accounts)) {
+        foreach($accounts as $k=>$account) {
+            $stmt->bind_param("iis", $user_id, $account, $obj_type);
+            $stmt->execute();
+            $i++;
+        }
+    }
+
+    $stmt->close();
+    return ($i);
+}
+
+
+function removeUserAttachedAccounts($user_id)
+{
+    global $mysqli,$db_table_prefix;
+    $obj_type = 'account';
+    $stmt = $mysqli->prepare("DELETE FROM ".$db_table_prefix."user_attached
+        WHERE user_id = ?
+        AND type = ?");
+    $stmt->bind_param("is", $user_id, $obj_type);
+    $result = $stmt->execute();
+    $stmt->close();
+    return ($result);
+}
+
 
 function getAccountCampaigns($account_id=null)
 {
@@ -232,7 +288,8 @@ function getAccountCampaigns($account_id=null)
 		source_alias,
 		title,
 		post_url
-		FROM ".$db_table_prefix."campaigns");
+		FROM ".$db_table_prefix."campaigns
+		WHERE status = 'active'");
     } else {
         $stmt = $mysqli->prepare("SELECT
 		id,
@@ -241,7 +298,8 @@ function getAccountCampaigns($account_id=null)
 		title,
 		post_url
 		FROM ".$db_table_prefix."campaigns
-        WHERE account_id = ?" );
+        WHERE status = 'active'
+        AND account_id = ?" );
         $stmt->bind_param("i", $account_id);
     }
 
@@ -256,7 +314,6 @@ function getAccountCampaigns($account_id=null)
 }
 
 
-
 function fetchAllCampaigns()
 {
     global $mysqli,$db_table_prefix;
@@ -267,20 +324,120 @@ function fetchAllCampaigns()
 		c.source_id,
 		c.source_alias,
 		c.title,
-		c.post_url
+		c.post_url,
+		c.status
 		FROM ".$db_table_prefix."campaigns c, ".$db_table_prefix."accounts a
 		WHERE c.account_id = a.id");
 
     $stmt->execute();
-    $stmt->bind_result($id, $acc_name, $source_id, $source_alias, $title, $post_url);
+    $stmt->bind_result($id, $acc_name, $source_id, $source_alias, $title, $post_url, $status);
     while ($stmt->fetch()){
         $row[] = array('id' => $id, 'acc_name' => $acc_name, 'source_id' => $source_id,
-            'source_alias' => $source_alias, 'title' => $title, 'post_url' => $post_url);
+            'source_alias' => $source_alias, 'title' => $title, 'post_url' => $post_url, 'campaign_status' => $status);
     }
     $stmt->close();
     return ($row);
 }
 
+
+function fetchCampaignDetails($id)
+{
+    global $mysqli,$db_table_prefix;
+    $stmt = $mysqli->prepare("SELECT
+		c.id,
+		c.account_id,
+		-- a.title as acc_name,
+		c.source_id,
+		c.source_alias,
+		c.title,
+		c.post_url,
+		c.email_field,
+		c.status
+		FROM ".$db_table_prefix."campaigns c
+		WHERE c.id = ?");
+
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($id, $account_id, $source_id, $source_alias, $title, $post_url, $email_field, $status);
+    while ($stmt->fetch()){
+        $row = array('id' => $id, 'account_id' => $account_id, 'source_id' => $source_id,
+            'source_alias' => $source_alias, 'title' => $title, 'post_url' => $post_url, 'email_field' => $email_field,
+            'campaign_status' => $status);
+    }
+    $stmt->close();
+    return ($row);
+}
+
+
+//Check if a campaign ID exists in the DB
+function campaignIdExists($id)
+{
+    global $mysqli,$db_table_prefix;
+    $stmt = $mysqli->prepare("SELECT id
+		FROM ".$db_table_prefix."campaigns
+		WHERE
+		id = ?
+		LIMIT 1");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->store_result();
+    $num_returns = $stmt->num_rows;
+    $stmt->close();
+
+    if ($num_returns > 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// add new campaign
+function createCampaign($campaign)
+{
+    global $mysqli,$db_table_prefix;
+    $stmt = $mysqli->prepare("INSERT INTO ".$db_table_prefix."campaigns (
+		account_id,
+        source_id,
+        source_alias,
+        title,
+        post_url,
+        email_field
+		)
+		VALUES (
+		?, ?, ?, ?, ?, ?
+		)");
+    $stmt->bind_param("isssss", $campaign["account_id"], $campaign["source_id"], $campaign["source_alias"],
+                      $campaign["title"], $campaign["post_url"], $campaign["email_field"]);
+    $result = $stmt->execute();
+    $stmt->close();
+    return $result;
+}
+
+
+// update campaign
+function updateCampaign($campaign)
+{
+    global $mysqli,$db_table_prefix;
+    $stmt = $mysqli->prepare("UPDATE ".$db_table_prefix."campaigns
+        SET
+		account_id = ?,
+        source_id = ?,
+        source_alias = ?,
+        title = ?,
+        post_url = ?,
+        email_field = ?,
+        status = ?
+		WHERE id = ?");
+    $stmt->bind_param("issssssi", $campaign["account_id"], $campaign["source_id"], $campaign["source_alias"],
+        $campaign["title"], $campaign["post_url"], $campaign["email_field"], $campaign["campaign_status"],
+        $campaign["id"]);
+    $result = $stmt->execute();
+    $stmt->close();
+    return $result;
+}
 
 //Functions that interact mainly with .users table
 //------------------------------------------------------------------------------
@@ -392,7 +549,7 @@ function fetchAllUsers()
 {
 	global $mysqli,$db_table_prefix; 
 	$stmt = $mysqli->prepare("SELECT 
-		id,
+		u.id,
 		user_name,
 		display_name,
 		password,
@@ -401,15 +558,28 @@ function fetchAllUsers()
 		last_activation_request,
 		lost_password_request,
 		active,
-		title,
+		u.title,
 		sign_up_stamp,
-		last_sign_in_stamp
-		FROM ".$db_table_prefix."users");
+		last_sign_in_stamp,
+		GROUP_CONCAT(a.title) as title
+		FROM ".$db_table_prefix."users u
+		LEFT JOIN
+		    (SELECT t1.user_id, obj_id FROM ".$db_table_prefix."user_attached t1 WHERE t1.type='account') ua
+		    ON u.id=ua.user_id
+        LEFT JOIN ".$db_table_prefix."accounts a ON ua.obj_id = a.id
+		-- WHERE ua.type='account'
+		GROUP BY u.id
+		");
 	$stmt->execute();
-	$stmt->bind_result($id, $user, $display, $password, $email, $token, $activationRequest, $passwordRequest, $active, $title, $signUp, $signIn);
+	$stmt->bind_result($id, $user, $display, $password, $email, $token, $activationRequest,
+        $passwordRequest, $active, $title, $signUp, $signIn, $obj_id);
 	
 	while ($stmt->fetch()){
-		$row[] = array('id' => $id, 'user_name' => $user, 'display_name' => $display, 'password' => $password, 'email' => $email, 'activation_token' => $token, 'last_activation_request' => $activationRequest, 'lost_password_request' => $passwordRequest, 'active' => $active, 'title' => $title, 'sign_up_stamp' => $signUp, 'last_sign_in_stamp' => $signIn);
+		$row[] = array('id' => $id, 'user_name' => $user, 'display_name' => $display,
+            'password' => $password, 'email' => $email, 'activation_token' => $token,
+            'last_activation_request' => $activationRequest, 'lost_password_request' => $passwordRequest,
+            'active' => $active, 'title' => $title, 'sign_up_stamp' => $signUp,
+            'last_sign_in_stamp' => $signIn, 'obj_id' => $obj_id);
 	}
 	$stmt->close();
 	return ($row);

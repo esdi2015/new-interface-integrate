@@ -118,4 +118,11 @@ $lang = array_merge($lang,array(
 	"CANNOT_DELETE_NEWUSERS"		=> "You cannot delete the default 'new user' group",
 	"CANNOT_DELETE_ADMIN"			=> "You cannot delete the default 'admin' group",
 	));
+
+//campaigns
+$lang = array_merge($lang,array(
+    "CAMPAIGN_UPDATED"              => "Campaign updated",
+    "CAMPAIGN_ADDED"                => "Campaign added",
+    "ATTACHMENTS_UPDATED"           => "Attachments updated",
+));
 ?>

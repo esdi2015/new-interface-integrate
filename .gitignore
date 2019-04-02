@@ -1,3 +1,6 @@
 pmadmin/*
 downloads/*
 uploads/*
+log_result.txt
+my/lead/log_status.txt
+.idea/*

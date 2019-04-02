@@ -2,8 +2,7 @@
 require_once("models/config.php");
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
-if ($loggedInUser->
-checkPermission(array(2))){
+if ($loggedInUser->checkPermission(array(1,2,3))){
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,6 +88,7 @@ checkPermission(array(2))){
             return $('#hidden_page').val();
           }
           function getCurrentUser(){
+            //alert($('#hidden_uid').val());
             return $('#hidden_uid').val();
           }
 

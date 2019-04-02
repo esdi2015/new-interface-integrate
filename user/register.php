@@ -32,11 +32,11 @@ ob_start();
     require_once("models/config.php");
 
     ob_flush();
-
+//var_dump(($_SERVER['PHP_SELF']));
+//var_dump(securePage($_SERVER['PHP_SELF']));
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
-if ($loggedInUser->
-checkPermission(array(2))){
+if ($loggedInUser->checkPermission(array(2,3))){
 	
 	?>
      <div id="wrapper">

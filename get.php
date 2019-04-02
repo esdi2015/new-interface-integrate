@@ -91,7 +91,6 @@ if ($action == "get_results") {
     if (isset($_POST['get_account_campaigns'])) {
         $account_id = $_POST['account_id'];
         $campaigns = getAccountCampaigns($account_id);
-        //var_dump($campaigns);
         echo json_encode($campaigns);
         die();
     }
@@ -109,7 +108,10 @@ if ($action == "get_results") {
         }
         
         $result = array();
-        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count FROM csv_uploaded_files WHERE user_id='" . $_POST['user_id'] . "'  ORDER BY uploaded_at DESC LIMIT $offset, $records_limit");
+        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
+                                    FROM csv_uploaded_files
+                                    WHERE user_id='" . $_POST['user_id'] . "'
+                                    ORDER BY uploaded_at DESC LIMIT $offset, $records_limit");
         $sql->execute();
         $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count);
         $current_count = 0;
@@ -151,7 +153,10 @@ if ($action == "get_results") {
         }
         
         $result = array();
-        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count FROM csv_uploaded_files ORDER BY uploaded_at DESC LIMIT $offset, $records_limit");
+        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
+                                    FROM csv_uploaded_files
+                                    ORDER BY uploaded_at
+                                    DESC LIMIT $offset, $records_limit");
         $sql->execute();
         $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count);
         $current_count = 0;
@@ -198,7 +203,10 @@ if ($action == "get_results") {
         
         
         $result = array();
-        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count FROM csv_uploaded_files ORDER BY uploaded_at DESC LIMIT $offset, $records_limit");
+        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
+                                    FROM csv_uploaded_files
+                                    ORDER BY uploaded_at DESC
+                                    LIMIT $offset, $records_limit");
         $sql->execute();
         $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count);
         $current_count = 0;

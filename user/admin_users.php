@@ -3,7 +3,7 @@ require_once("models/config.php");
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
 if ($loggedInUser->
-checkPermission(array(2))){
+checkPermission(array(2,3))){
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,7 +70,7 @@ echo "
 <form name='adminUsers' action='".$_SERVER['PHP_SELF']."' method='post'>
 <table class='table table-condensed'>
 <tr>
-<th>Delete</th><th>Username</th><th>Display Name</th><th>Title</th><th>Last Sign In</th><th></th>
+<th>Delete</th><th>Username</th><th>Display Name</th><th>Title</th><th>Last Sign In</th><th></th><th>Integrate Account</th>
 </tr>";
 
 //Cycle through users
@@ -96,6 +96,7 @@ foreach ($userData as $v1) {
   <td>
   <a href='admin_user_uploads.php?uid=".$v1['id']."'>Show upload history</a>
   </td>
+  <td>".$v1['obj_id']."</td>
 	</tr>";
 }
 

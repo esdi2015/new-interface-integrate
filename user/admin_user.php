@@ -2,8 +2,7 @@
 require_once("models/config.php");
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
-if ($loggedInUser->
-checkPermission(array(2))){
+if ($loggedInUser->checkPermission(array(2,3))){
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,10 +56,14 @@ if(!userIdExists($userId)){
 }
 
 $userdetails = fetchUserDetails(NULL, NULL, $userId); //Fetch user details
-
+$accounts = getAllAccounts();
+$userAccountAttached = getUserAttachedAccounts($userId);
+//var_dump($userAccountAttached);
 //Forms posted
 if(!empty($_POST))
-{	
+{
+    //var_dump($_POST);
+    //die();
 	//Delete selected account
 	if(!empty($_POST['delete'])){
 		$deletions = $_POST['delete'];
@@ -184,8 +187,45 @@ if(!empty($_POST))
 				$errors[] = lang("SQL_ERROR");
 			}
 		}
-		
+
+        if (!empty($_POST['accounts'])) {
+            //var_dump($userAccountAttached); die();
+            if (is_null($userAccountAttached)) {
+                $attach = insertUserAttachedAccounts($userId, $_POST['accounts']);
+                //var_dump($attach); die();
+                if ($attach) {
+                    $successes[] = lang("ATTACHMENTS_UPDATED");
+                } else {
+                    $errors[] = lang("SQL_ERROR");
+                }
+            } else {
+               // if (($userAccountAttached[0]['obj_id'] != $_POST['accounts'])) {
+                    $remove_attach = removeUserAttachedAccounts($userId);
+                    if ($remove_attach) {
+                        $attach = insertUserAttachedAccounts($userId, $_POST['accounts']);
+                        if ($attach) {
+                            $successes[] = lang("ATTACHMENTS_UPDATED");
+                        } else {
+                            $errors[] = lang("SQL_ERROR");
+                        }
+                    } else {
+                        $errors[] = lang("SQL_ERROR");
+                    }
+               // }
+            }
+        } else {
+            if (!empty($userAccountAttached)) {
+                $remove_attach = removeUserAttachedAccounts($userId);
+                if ($remove_attach) {
+                    $successes[] = lang("ATTACHMENTS_UPDATED");
+                } else {
+                    $errors[] = lang("SQL_ERROR");
+                }
+            }
+        }
+
 		$userdetails = fetchUserDetails(NULL, NULL, $userId);
+        $userAccountAttached = getUserAttachedAccounts($userId);
 	}
 }
 
@@ -283,6 +323,33 @@ foreach ($permissionData as $v1) {
 
 echo"
 </p>
+</div>
+
+<h3>Attach to</h3>
+<div id='attachbox'>
+<!--<input type='checkbox' name='accounts[0]' id='accounts[0]' value='0'>
+<label for='accounts[0]'>Not set</label><br>-->";
+$userAccountAttachedIds = array();
+if (is_array($userAccountAttached)) {
+    foreach ($userAccountAttached as $v) {
+        $userAccountAttachedIds[] = $v['obj_id'];
+    }
+}
+
+foreach ($accounts as $v1) {
+    if (in_array($v1['id'], $userAccountAttachedIds)) {
+        echo "<input type='checkbox' name='accounts[".$v1['id']."]' id='accounts[".$v1['id']."]' value='".$v1['id']."' checked='checked'>
+        <label for='accounts[".$v1['id']."]'>".$v1['title']."</label><br>";
+    } else {
+        echo "<input type='checkbox' name='accounts[".$v1['id']."]' id='accounts[".$v1['id']."]' value='".$v1['id']."'>
+        <label for='accounts[".$v1['id']."]'>".$v1['title']."</label><br>";
+    }
+
+//    if(!isset($userPermission[$v1['id']])){
+//        echo "<br><input type='checkbox' name='addPermission[".$v1['id']."]' id='addPermission[".$v1['id']."]' value='".$v1['id']."'> ".$v1['name'];
+//    }
+}
+echo "
 </div>
 </td>
 </tr>

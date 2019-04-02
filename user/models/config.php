@@ -52,9 +52,19 @@ session_start();
 
 //Global User Object Var
 //loggedInUser can be used globally if constructed
+$IS_SUPER_ADMIN = false;
+$IS_ADMIN = false;
+$IS_CAMPAIGN_MANAGER = false;
+
+$CAMPAIGN_STATUSES = array('active', 'disabled');
+
 if(isset($_SESSION["userCakeUser"]) && is_object($_SESSION["userCakeUser"]))
 {
 	$loggedInUser = $_SESSION["userCakeUser"];
+
+    $IS_SUPER_ADMIN = $loggedInUser->checkPermission(array(2));
+    $IS_ADMIN = $loggedInUser->checkPermission(array(3));
+    $IS_CAMPAIGN_MANAGER = $loggedInUser->checkPermission(array(1));
 }
 
 ?>
