@@ -46,18 +46,30 @@
 
 
     function prepareDataToPush($data) {
+        global $log_file;
         $arr = json_decode($data, true);
+        file_put_contents($log_file, "\n$arr\n", FILE_APPEND | LOCK_EX);
+        file_put_contents($log_file, $arr."\n\n", FILE_APPEND | LOCK_EX);
+        foreach ($arr as $a) {
+            file_put_contents($log_file, $a."\n", FILE_APPEND | LOCK_EX);
+        }
+        file_put_contents($log_file, "\n\n", FILE_APPEND | LOCK_EX);
         return $arr;
     }
 
+
+    function updateErrorCounter() {
+
+    }
+
     function pushToDatabaseLeadStatus($data, $context){
-        $isLeadIdExists = isLeadIdExists($data['id']);
+        $isLeadIdExists = isLeadIdExists($data['Id']);
 
         if ($isLeadIdExists == false) {
             $sql = $context->prepare("INSERT INTO csv_status_leads (lead_id, status, reason, uploaded_at)
                                             VALUES (?, ?, ?, ?)");
             try {
-                $sql->bind_param('ssss', $data['id'], $data['status'], $data['reason'],$data['timestamp']);
+                $sql->bind_param('ssss', $data['Id'], $data['Status'], $data['Reason'],$data['Timestamp']);
                 $result = $sql->execute();
             } catch (Exception $ex) {
                 $result = $ex->getMessage();
@@ -71,7 +83,7 @@
                                              uploaded_at = ?
                                        WHERE lead_id = ?");
             try {
-                $sql->bind_param('ssss', $data['status'], $data['reason'], $data['timestamp'], $data['id']);
+                $sql->bind_param('ssss', $data['Status'], $data['Reason'], $data['Timestamp'], $data['Id']);
                 $result = $sql->execute();
             } catch (Exception $ex) {
                 $result = $ex->getMessage();

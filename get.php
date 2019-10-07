@@ -19,7 +19,10 @@ if ($action == "get_results") {
         }
         
         $result = array();
-        $sql    = $mysqli->prepare("SELECT * FROM csv_uploaded_files_results WHERE parent_id='" . $_POST['parent_id'] . "' AND result LIKE '%<success>0</success>%' ORDER BY id"); //  DESC LIMIT $offset, $records_limit
+        $sql    = $mysqli->prepare("SELECT * FROM csv_uploaded_files_results
+                                    WHERE parent_id='" . $_POST['parent_id'] . "'
+                                    AND result LIKE '%<success>0</success>%'
+                                    ORDER BY id"); //  DESC LIMIT $offset, $records_limit
         $sql->execute();
         $sql->bind_result($id, $parent_id, $resultxml, $error_line);
         $current_count = 0;
@@ -108,12 +111,15 @@ if ($action == "get_results") {
         }
         
         $result = array();
-        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
-                                    FROM csv_uploaded_files
-                                    WHERE user_id='" . $_POST['user_id'] . "'
-                                    ORDER BY uploaded_at DESC LIMIT $offset, $records_limit");
+        $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
+                                           f.errors_count, uc.source_alias
+                                    FROM csv_uploaded_files f
+                                    LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
+                                    WHERE f.user_id='" . $_POST['user_id'] . "'
+                                    ORDER BY f.uploaded_at DESC
+                                    LIMIT $offset, $records_limit");
         $sql->execute();
-        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count);
+        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count, $source_alias);
         $current_count = 0;
         while ($sql->fetch()) {
             $current_count++;
@@ -128,7 +134,7 @@ if ($action == "get_results") {
         	$errors_count = $sql_cerr->num_rows;
         	$sql_cerr->close();*/
             $row = array(
-                'id' => $id,
+                'id' => $source_alias, //$id,
                 'user_id' => $user_id,
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
@@ -153,12 +159,20 @@ if ($action == "get_results") {
         }
         
         $result = array();
-        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
-                                    FROM csv_uploaded_files
-                                    ORDER BY uploaded_at
-                                    DESC LIMIT $offset, $records_limit");
+//        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
+//                                    FROM csv_uploaded_files
+//                                    ORDER BY uploaded_at
+//                                    DESC LIMIT $offset, $records_limit");
+
+        $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
+                                           f.errors_count, uc.source_alias
+                                    FROM csv_uploaded_files f
+                                    LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
+                                    ORDER BY f.uploaded_at DESC
+                                    LIMIT $offset, $records_limit");
+
         $sql->execute();
-        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count);
+        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count, $source_alias);
         $current_count = 0;
         while ($sql->fetch()) {
             $current_count++;
@@ -176,7 +190,7 @@ if ($action == "get_results") {
             // GET USER INFORMATION
             $user = fetchUserDetailsNew($user_id);
             $row = array(
-                'id' => $id,
+                'id' => $source_alias, //$id,
                 'user_id' => $user['user_name'],
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
@@ -203,12 +217,20 @@ if ($action == "get_results") {
         
         
         $result = array();
-        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
-                                    FROM csv_uploaded_files
-                                    ORDER BY uploaded_at DESC
+//        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
+//                                    FROM csv_uploaded_files
+//                                    ORDER BY uploaded_at DESC
+//                                    LIMIT $offset, $records_limit");
+
+        $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
+                                           f.errors_count, uc.source_alias
+                                    FROM csv_uploaded_files f
+                                    LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
+                                    ORDER BY f.uploaded_at DESC
                                     LIMIT $offset, $records_limit");
+
         $sql->execute();
-        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count);
+        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count, $source_alias);
         $current_count = 0;
         while ($sql->fetch()) {
             $current_count++;
@@ -218,7 +240,7 @@ if ($action == "get_results") {
                 }
             }
             $row = array(
-                'id' => $id,
+                'id' => $source_alias, //$id,
                 'user_id' => $user_id,
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
