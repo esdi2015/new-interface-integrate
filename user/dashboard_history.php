@@ -9,7 +9,7 @@
             <th>Uploaded at</th>
             <th>File name</th>
             <th>Errors</th>
-            <th></th>
+            <th>Download</th>
         </tr>
     </table>
 </div>
@@ -46,12 +46,12 @@
                     .hide();
             },
             success: function(response) {
-            	var headHtml = '<tr><th>ID</th><th>Uploaded at</th><th>File name</th><th>IP</th><th>Number of errors</th>';
+            	var headHtml = '<tr><th>ID</th><th>Uploaded at</th><th>File name</th><th>IP</th><th>Errors</th>';
                 
                 if(showAll){
                 	headHtml += '<th>User</th>';
                 }
-                headHtml += '<th></th></tr>';
+                headHtml += '<th>Download</th></tr>';
                 
 				$('#records_table').html(headHtml);
 

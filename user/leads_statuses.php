@@ -139,7 +139,8 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
                         text: 'Download filtered list',
                         click: function () {
                             var query = $('#jtable_sorting_info').val();
-                            window.location = 'leads_status_actions.php?action=downloadfiltered&'+query;
+                            //alert(query);
+//                            window.location = 'leads_status_actions.php?action=downloadfiltered&'+query;
                             e.preventDefault();
                         }
                     }
@@ -149,6 +150,7 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
                         text: 'Delete selected rows',
                         click: function(){
                             var $selectedRows = $('#CampaignsTableContainer').jtable('selectedRows');
+                            //console.log($selectedRows);
                             $('#CampaignsTableContainer').jtable('deleteRows', $selectedRows);
                         }
                     }]

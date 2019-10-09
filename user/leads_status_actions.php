@@ -122,9 +122,9 @@ try {
         }
     } else if ($_GET["action"] == "delete") {
         //Delete from database
-        $result = $mysqli->prepare("DELETE FROM csv_status_leads WHERE id = " . $_POST["id"]);
-        $result->execute();
-        $result->close();
+//        $result = $mysqli->prepare("DELETE FROM csv_status_leads WHERE id = " . $_POST["id"]);
+//        $result->execute();
+//        $result->close();
         //Return result to jTable
         $jTableResult = array();
         $jTableResult['Result'] = "OK";
