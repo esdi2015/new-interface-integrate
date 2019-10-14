@@ -108,6 +108,8 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
 
     $(document).ready(function () {
 
+        var SelectedRowIDsString = '';
+
         //Prepare jTable
         $('#CampaignsTableContainer').jtable({
             title: 'Leads statuses',
@@ -130,18 +132,19 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
                     text: 'Download whole list',
                     click: function () {
                         window.location = 'leads_status_actions.php?action=download';
-                        e.preventDefault();
+//                        e.preventDefault();
+                        return false;
                     }
                 },
                     {
-                        Tooltip: 'Click here to download filtered leads list',
+//                        Tooltip: 'Click here to download filtered leads list',
+                        Tooltip: 'Click here to download selected leads list',
                         //icon: '/images/paginate.gif',
-                        text: 'Download filtered list',
+                        text: 'Download selected list',
                         click: function () {
-                            var query = $('#jtable_sorting_info').val();
-                            //alert(query);
-//                            window.location = 'leads_status_actions.php?action=downloadfiltered&'+query;
-                            e.preventDefault();
+                            window.location = 'leads_status_actions.php?action=downloadselected&ids=' + $('#SelectedRowIDsString').val();
+//                            e.preventDefault();
+                            return false;
                         }
                     }
                     ,{
@@ -150,7 +153,6 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
                         text: 'Delete selected rows',
                         click: function(){
                             var $selectedRows = $('#CampaignsTableContainer').jtable('selectedRows');
-                            //console.log($selectedRows);
                             $('#CampaignsTableContainer').jtable('deleteRows', $selectedRows);
                         }
                     }]
@@ -177,15 +179,17 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
                 //Get all selected rows
                 var $selectedRows = $('#CampaignsTableContainer').jtable('selectedRows');
  
-                $('#SelectedRowList').empty();
+                $('#SelectedRowIDs').empty();
+                var SelectedRowIDs = [];
                 //Show selected rows
                 $selectedRows.each(function () {
                     var record = $(this).data('record');
-                    $('#SelectedRowList').html($selectedRows.length);
+                    SelectedRowIDs[SelectedRowIDs.length] = record.id
                 });
+                SelectedRowIDsString = SelectedRowIDs.join(',');
+                $('#SelectedRowIDsString').val(SelectedRowIDsString)
             }
         });
-
         $('.jtable').wrap('<div class="jtable-main-container scroll-content" />');
 
 
@@ -196,5 +200,6 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
 
 </script>
 <iframe id="download_zip" name="download_zip" width="0" height="0" scrolling="no" frameborder="0"></iframe>
+<input type="hidden" id="SelectedRowIDsString" value="" />
 </body>
 </html>

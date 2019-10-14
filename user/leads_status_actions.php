@@ -163,7 +163,7 @@ try {
 
                 header('Content-Description: File Transfer');
                 header('Content-Type: application/csv');
-                header('Content-Disposition: attachment; filename=AcceptedLeads_'.date('Y_m_d_H_i_s').'.csv');
+                header('Content-Disposition: attachment; filename=AllLeads_'.date('Y_m_d_H_i_s').'.csv');
                 header('Expires: 0');
                 header('Cache-Control: must-revalidate');
                 header('Pragma: public');
@@ -239,7 +239,7 @@ try {
 
                 header('Content-Description: File Transfer');
                 header('Content-Type: application/csv');
-                header('Content-Disposition: attachment; filename=AcceptedLeads_'.date('Y_m_d_H_i_s').'.csv');
+                header('Content-Disposition: attachment; filename=FilteredLeads_'.date('Y_m_d_H_i_s').'.csv');
                 header('Expires: 0');
                 header('Cache-Control: must-revalidate');
                 header('Pragma: public');
@@ -248,6 +248,32 @@ try {
                 flush();
                 echo $content;
             }    
+    } else if ($_GET["action"] == "downloadselected"){
+//        var_dump($_GET["action"]);
+        require_once('../download.php');
+        $delimiter=";";
+        $rows = process_send('leads_ids');
+//        var_dump($rows);
+//        die();
+        $content;
+        $content .= implode(",", array_keys($rows[0]))."\n";
+        foreach ($rows as $row) {
+            $content .= implode(",", array_values($row))."\n";
+        }
+        $filename = date('Y_m_d_H_i_s').'.csv';
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachment; filename="SelectedLeads_'.$filename.'";');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . strlen($content));
+
+        ob_clean();
+        flush();
+
+        echo $content;
     }
 } catch (Exception $ex) {
     //Return error message

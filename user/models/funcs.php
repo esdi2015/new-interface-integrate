@@ -13,20 +13,30 @@ function getSiteURL() {
 
 
 
-function isLeadIdExists($leadId){
+function isLeadIdExists($leadId, $with_upload_no=false){
     global $mysqli;
-    $sql = $mysqli->prepare("SELECT id
+    $sql = $mysqli->prepare("SELECT id, upload_no
 		FROM csv_status_leads
 		WHERE
 		lead_id = ?
+		ORDER BY id DESC
 		LIMIT 1");
     $sql->bind_param("s", $leadId);
     $sql->execute();
-    $sql->store_result();
+
+	$sql->bind_result($id, $upload_no);
+
+	while ($sql->fetch()){
+		$row = array($id, $upload_no);
+	}
+//    $sql->store_result();
     $num_returns = $sql->num_rows;
     $sql->close();
 
     if ($num_returns > 0) {
+		if ($with_upload_no == true) {
+			return $row;
+		}
         return true;
     } else {
         return false;

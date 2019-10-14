@@ -46,6 +46,7 @@ if ($action == "get_results") {
 } else {
     if (isset($_POST['get_count_all'])) {
         $sql = $mysqli->prepare("SELECT * FROM csv_uploaded_files");
+        //var_dump($sql);
         $sql->execute();
         $sql->store_result();
         $num_returns = $sql->num_rows;
@@ -118,6 +119,8 @@ if ($action == "get_results") {
                                     WHERE f.user_id='" . $_POST['user_id'] . "'
                                     ORDER BY f.uploaded_at DESC
                                     LIMIT $offset, $records_limit");
+
+        //var_dump($sql);
         $sql->execute();
         $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count, $source_alias);
         $current_count = 0;
@@ -134,12 +137,13 @@ if ($action == "get_results") {
         	$errors_count = $sql_cerr->num_rows;
         	$sql_cerr->close();*/
             $row = array(
-                'id' => $source_alias, //$id,
+                'id' => $id,
                 'user_id' => $user_id,
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
                 'ip' => $ip,
-                'errors_count' => $errors_count
+                'errors_count' => $errors_count,
+                'source_alias' => $source_alias
             );
             array_push($result, $row);
             
@@ -171,6 +175,8 @@ if ($action == "get_results") {
                                     ORDER BY f.uploaded_at DESC
                                     LIMIT $offset, $records_limit");
 
+        //var_dump($sql);
+
         $sql->execute();
         $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count, $source_alias);
         $current_count = 0;
@@ -190,13 +196,13 @@ if ($action == "get_results") {
             // GET USER INFORMATION
             $user = fetchUserDetailsNew($user_id);
             $row = array(
-                'id' => $source_alias, //$id,
+                'id' => $id,
                 'user_id' => $user['user_name'],
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
                 'ip' => $ip,
-                'errors_count' => $errors_count
-
+                'errors_count' => $errors_count,
+                'source_alias' => $source_alias
             );
             array_push($result, $row);
             
@@ -240,12 +246,13 @@ if ($action == "get_results") {
                 }
             }
             $row = array(
-                'id' => $source_alias, //$id,
+                'id' => $id,
                 'user_id' => $user_id,
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
                 'ip' => $ip,
-                'errors_count' => $errors_count
+                'errors_count' => $errors_count,
+                'source_alias' => $source_alias
             );
             array_push($result, $row);
             

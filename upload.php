@@ -54,14 +54,30 @@
         //var_dump($url); die();
 		$encfile = remove_utf8_bom(file($newFileName));
 		$csv = array_map('str_getcsv', $encfile);
+//        var_dump($csv);
 		// Insert master
 		$array_items = array();
 
+
+		$pushData = array("user_id" => $user_id,
+			"uploaded_at" => $uploaded_at_datetime,
+			"filename" => $_FILES['file']['name'],
+			"ip" => $ip,
+			"result" => $newFileNameDownload,
+			"errors_count" => count($array_items),
+			"campaign_id" => $campaign_id);
+
+		$uploaded_file_id = pushToDatabase($pushData, $mysqli, true);
+
 		foreach ($csv as $index => &$row) {
 			$item = array_combine($csv[0], $row);
+            $_lead_id = null;
+            if (!empty($item['LeadID'])) {
+                $_lead_id = $item['LeadID'];
+            }
 			if($index > 0){
 				$emptyValues = 0;
-				foreach ($row as $value) {
+				foreach ($row as $key=>$value) {
 					if(empty($value)){
 						$emptyValues++;
 					}
@@ -77,25 +93,40 @@
                     file_put_contents($log_file, "\nurl\n", FILE_APPEND | LOCK_EX);
                     file_put_contents($log_file, $url, FILE_APPEND | LOCK_EX);
 
-                    $result = file_get_contents($url, false, stream_context_create(array(
-                        'http' => array(
-                            'method'  => 'POST',
-                            'header'  => 'Content-type: application/x-www-form-urlencoded',
-                            'content' => $query
-                        )
-                    )));
+					$result = null;
+
+                    try {
+                        $result = file_get_contents($url, false, stream_context_create(array(
+                            'http' => array(
+                                'method'  => 'POST',
+                                'header'  => 'Content-type: application/x-www-form-urlencoded',
+                                'content' => $query
+                            )
+                        )));
+
+                    } catch (Exception $e) {
+
+                    }
+
+//                    $result = file_get_contents($url, false, stream_context_create(array(
+//                        'http' => array(
+//                            'method'  => 'POST',
+//                            'header'  => 'Content-type: application/x-www-form-urlencoded',
+//                            'content' => $query
+//                        )
+//                    )));
 
                     file_put_contents($log_file, "\nresult\n", FILE_APPEND | LOCK_EX);
                     file_put_contents($log_file, $result, FILE_APPEND | LOCK_EX);
 
                     $result = json_decode($result, true);
-
+//					$result['result'][0] = '';
                     file_put_contents($log_file, "\nresult (json_decode)\n", FILE_APPEND | LOCK_EX);
-                    file_put_contents($log_file, $result."\n\n", FILE_APPEND | LOCK_EX);
+                    file_put_contents($log_file, print_r($result)."\n\n", FILE_APPEND | LOCK_EX);
 
 
                     $pushDataLead = array(
-                        'lead_id' => $result['result'][0],
+                        'lead_id' => (!is_null($_lead_id) ? $_lead_id : ((!is_null($result)) ? $result['result'][0] : 'upload - '.time())),
                         'source_id' => $source_id,
                         'source_alias' => $source_alias,
                         'email' => $item[$email_field],
@@ -105,7 +136,8 @@
                         'reason' => $leadReason,
                         'uploaded_at' => $uploaded_at_datetime,
                         'ip' => $ip,
-                        'campaign_id' => $campaign_id);
+                        'campaign_id' => $campaign_id,
+						'file_id' => $uploaded_file_id);
 
                     pushLeadsToDatabase($pushDataLead, $mysqli);
                     echo $index." is success\n";
@@ -115,15 +147,7 @@
 			}
 		}
 
-		$pushData = array("user_id" => $user_id,
-				"uploaded_at" => $uploaded_at_datetime,
-				"filename" => $_FILES['file']['name'],
-				"ip" => $ip,
-				"result" => $newFileNameDownload,
-				"errors_count" => count($array_items),
-                "campaign_id" => $campaign_id);
 
-		pushToDatabase($pushData, $mysqli, true);
 
 		if(count($array_items) > 0){
 			$fp = fopen($newFileNameDownload, 'w');
@@ -168,30 +192,40 @@
 	}
 
     function pushLeadsToDatabase($data, $context){
-        $isLeadIdExists = isLeadIdExists($data['lead_id']);
+        $isLeadIdExists = isLeadIdExists($data['lead_id'], true);
 
         if ($isLeadIdExists == false) {
             $sql = $context->prepare("INSERT INTO csv_status_leads (lead_id, source_id, source_alias, email, status,
-                                              user_id, filename, reason, uploaded_at, ip, campaign_id)
-										VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $sql->bind_param('sssssissssi', $data['lead_id'], $data['source_id'], $data['source_alias'], $data['email'],
+                                              user_id, filename, reason, uploaded_at, ip, campaign_id, file_id)
+										VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $sql->bind_param('sssssissssii', $data['lead_id'], $data['source_id'], $data['source_alias'], $data['email'],
                 $data['status'], $data['user_id'], $data['filename'], $data['reason'],
-                $data['uploaded_at'], $data['ip'], $data['campaign_id']);
+                $data['uploaded_at'], $data['ip'], $data['campaign_id'], $data['file_id']);
             $sql->execute();
             $insert_id = $sql->insert_id;
             $sql->close();
             return $insert_id;
         } else {
-            $sql = $context->prepare("UPDATE csv_status_leads
-                                         SET status = ?,
-                                             user_id = ?,
-                                             filename = ?,
-                                             reason = ?,
-                                             uploaded_at = ?,
-                                             ip = ?
-                                       WHERE lead_id = ?");
-            $sql->bind_param('sisssss', $data['status'], $data['user_id'], $data['filename'], $data['reason'],
-                $data['uploaded_at'], $data['ip'], $data['lead_id']);
+            $new_upload_no = ($isLeadIdExists[1] + 1);
+
+//            $sql = ;$context->prepare("UPDATE csv_status_leads
+//                                         SET status = ?,
+//                                             user_id = ?,
+//                                             filename = ?,
+//                                             reason = ?,
+//                                             uploaded_at = ?,
+//                                             ip = ?
+//                                       WHERE lead_id = ?");
+//            $sql->bind_param('sisssss', $data['status'], $data['user_id'], $data['filename'], $data['reason'],
+//                $data['uploaded_at'], $data['ip'], $data['lead_id']);
+
+			$sql = $context->prepare("INSERT INTO csv_status_leads (lead_id, source_id, source_alias, email, status,
+                                              user_id, filename, reason, uploaded_at, ip, campaign_id, file_id, upload_no)
+										VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			$sql->bind_param('sssssissssiii', $data['lead_id'], $data['source_id'], $data['source_alias'], $data['email'],
+				$data['status'], $data['user_id'], $data['filename'], $data['reason'],
+				$data['uploaded_at'], $data['ip'], $data['campaign_id'], $data['file_id'], $new_upload_no );
+
             $sql->execute();
             $insert_id = $sql->insert_id;
             $sql->close();

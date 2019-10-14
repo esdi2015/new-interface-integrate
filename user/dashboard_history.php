@@ -62,7 +62,7 @@
                     }else{
                         trHTML += '<tr class="success">';
                     }
-                    trHTML += '<td>' + item.id + '</td>';
+                    trHTML += '<td>' + item.source_alias + '</td>';
                     trHTML += '<td>' + item.uploaded_at + '</td>';
                     trHTML += '<td>' + item.filename + '</td>';
                     trHTML += '<td>' + item.ip + '</td>';
