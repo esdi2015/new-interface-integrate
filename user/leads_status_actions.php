@@ -53,12 +53,16 @@ try {
             $query = "SELECT id, lead_id, source_id, source_alias, email, status,
                     user_id, filename, reason, uploaded_at
                     FROM csv_status_leads ".$filters."
+                    -- GROUP BY lead_id
+                    -- HAVING (MAX(upload_no))
                     ORDER BY " . $jtSorting . " LIMIT " . $_GET["jtStartIndex"] . "," . $_GET["jtPageSize"];
         } elseif ($IS_CAMPAIGN_MANAGER) {
             $query = "SELECT id, lead_id, source_id, source_alias, email, status,
                     user_id, filename, reason, uploaded_at
                     FROM csv_status_leads ".$filters."
                     WHERE user_id = ".$loggedInUser->user_id."
+                    -- GROUP BY lead_id
+                    -- HAVING (MAX(upload_no))
                     ORDER BY " . $jtSorting . " LIMIT " . $_GET["jtStartIndex"] . "," . $_GET["jtPageSize"];
         }
 
