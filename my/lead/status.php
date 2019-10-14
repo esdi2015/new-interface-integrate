@@ -4,7 +4,6 @@
     require_once('../../user/models/funcs.php');
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
         $post_data = file_get_contents('php://input');
 //        $post_data = (isset($post_data) && (is_json($post_data) == true)
 //            && (strlen($post_data) > 0)) ? $post_data : null;
@@ -25,11 +24,6 @@
         file_put_contents($log_file, "\nREQUEST_URI_DATA\n", FILE_APPEND | LOCK_EX);
         file_put_contents($log_file, $_SERVER['REQUEST_URI']."\n\n", FILE_APPEND | LOCK_EX);
 
-//        var_dump($post_data);
-//        var_dump($HTTP_RAW_POST_DATA);
-//        var_dump($_POST);
-//        die();
-
         $dataLead =  prepareDataToPush($HTTP_RAW_POST_DATA);
         $replaceLead = pushToDatabaseLeadStatus($dataLead, $mysqli);
 
@@ -37,7 +31,6 @@
         $error_count = getLeadsErrorCountByFileId($file_id, $mysqli);
 
         if ($dataLead['Status'] == 'Rejected') {
-//            updateErrorCounter($file_id, $mysqli, $error_count);
             updateErrorCounter($file_id, $mysqli, 1);
         }
 
@@ -153,8 +146,6 @@
             return $result;
         } else {
             $max_upload_no = getMaxUploadNoLeadUid($data['Id'], $context);
-            var_dump($max_upload_no);
-            var_dump($data);
             $sql = $context->prepare("UPDATE csv_status_leads
                                          SET status = ?,
                                              reason = ?,
@@ -169,6 +160,5 @@
             $sql->close();
             return $result;
         }
-
     }
 ?>

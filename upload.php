@@ -51,13 +51,10 @@
 		// Get & Parse CSV file
 		// $url = $integrate_api_test_url;
         $url = $integrate_api_live_url."?".$callbackString;
-        //var_dump($url); die();
 		$encfile = remove_utf8_bom(file($newFileName));
 		$csv = array_map('str_getcsv', $encfile);
-//        var_dump($csv);
 		// Insert master
 		$array_items = array();
-
 
 		$pushData = array("user_id" => $user_id,
 			"uploaded_at" => $uploaded_at_datetime,
@@ -108,22 +105,12 @@
 
                     }
 
-//                    $result = file_get_contents($url, false, stream_context_create(array(
-//                        'http' => array(
-//                            'method'  => 'POST',
-//                            'header'  => 'Content-type: application/x-www-form-urlencoded',
-//                            'content' => $query
-//                        )
-//                    )));
-
                     file_put_contents($log_file, "\nresult\n", FILE_APPEND | LOCK_EX);
                     file_put_contents($log_file, $result, FILE_APPEND | LOCK_EX);
 
                     $result = json_decode($result, true);
-//					$result['result'][0] = '';
                     file_put_contents($log_file, "\nresult (json_decode)\n", FILE_APPEND | LOCK_EX);
                     file_put_contents($log_file, print_r($result)."\n\n", FILE_APPEND | LOCK_EX);
-
 
                     $pushDataLead = array(
                         'lead_id' => (!is_null($_lead_id) ? $_lead_id : ((!is_null($result)) ? $result['result'][0] : 'upload - '.time())),
@@ -147,17 +134,15 @@
 			}
 		}
 
-
-
-		if(count($array_items) > 0){
-			$fp = fopen($newFileNameDownload, 'w');
-			$csv[0][] = "ErrorResult";
-			fputcsv($fp, $csv[0]);
-			foreach ($array_items as $fields) {
-	    		fputcsv($fp, $fields);
-			}
-			fclose($fp);
-		}
+//		if(count($array_items) > 0){
+//			$fp = fopen($newFileNameDownload, 'w');
+//			$csv[0][] = "ErrorResult";
+//			fputcsv($fp, $csv[0]);
+//			foreach ($array_items as $fields) {
+//	    		fputcsv($fp, $fields);
+//			}
+//			fclose($fp);
+//		}
 
 		unlink($newFileName); // Remove uploaded file
     }
@@ -207,17 +192,6 @@
             return $insert_id;
         } else {
             $new_upload_no = ($isLeadIdExists[1] + 1);
-
-//            $sql = ;$context->prepare("UPDATE csv_status_leads
-//                                         SET status = ?,
-//                                             user_id = ?,
-//                                             filename = ?,
-//                                             reason = ?,
-//                                             uploaded_at = ?,
-//                                             ip = ?
-//                                       WHERE lead_id = ?");
-//            $sql->bind_param('sisssss', $data['status'], $data['user_id'], $data['filename'], $data['reason'],
-//                $data['uploaded_at'], $data['ip'], $data['lead_id']);
 
 			$sql = $context->prepare("INSERT INTO csv_status_leads (lead_id, source_id, source_alias, email, status,
                                               user_id, filename, reason, uploaded_at, ip, campaign_id, file_id, upload_no)

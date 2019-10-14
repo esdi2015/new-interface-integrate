@@ -249,12 +249,10 @@ try {
                 echo $content;
             }    
     } else if ($_GET["action"] == "downloadselected"){
-//        var_dump($_GET["action"]);
         require_once('../download.php');
         $delimiter=";";
         $rows = process_send('leads_ids');
-//        var_dump($rows);
-//        die();
+
         $content;
         $content .= implode(",", array_keys($rows[0]))."\n";
         foreach ($rows as $row) {
@@ -272,7 +270,6 @@ try {
 
         ob_clean();
         flush();
-
         echo $content;
     }
 } catch (Exception $ex) {
