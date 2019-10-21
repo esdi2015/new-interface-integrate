@@ -165,11 +165,11 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
                     list: false
                 },
                 lead_id:{title: "GUID", width: 'auto', list: true, isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=lead_id'},
-                source_id:{title: "Source ID", width: 'auto', list: true, isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=source_id'},
-                source_alias:{title: "Source Alias", width: 'auto', list: true, isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=source_alias'},
+                source_id:{title: "Source ID", width: 'auto', list: true, isDropDown: true, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=source_id'},
+                source_alias:{title: "Source Alias", width: 'auto', list: true, isDropDown: true, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=source_alias'},
                 email: {title: "Email", width: 'auto', list: true, isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=email'},
                 status: {title: "Status", width: 'auto', list: true, isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=status'},
-                user_id: {title: "User", width: 'auto', isDropDown: <?php echo $isUserIdDropDown;?>, isId: true, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=user_id&isid=true'},
+                user_id: {title: "User", width: 'auto', list: true, isDropDown: <?php echo $isUserIdDropDown;?>, isId: true, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=user_id&isid=true'},
                 filename: {title: "Filename", width: 'auto', isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=filename'},
                 reason: {title: "Reason", width: 'auto', isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=reason'},
                 uploaded_at: {title: "Updated at", width: 'auto', isDropDown: false, dropDownUrl: 'leads_status_actions.php?action=dropdown&name=uploaded_at'}

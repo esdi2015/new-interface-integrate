@@ -115,8 +115,8 @@ try {
                     $user = fetchUserDetailsNew($col);
                     $rows[] = ["id"=>$col, "value"=>$user['user_name']];
                 }else{
-                   //$rows[] = ["id"=>fetchUserDetailsNew(),"value"=>$col];
-                   $rows[] = ["id"=>fetchUserDetails(),"value"=>$col];
+//                    $rows[] = ["id"=>fetchUserDetails(),"value"=>$col];
+                    $rows[] = ["id"=>$col,"value"=>$col];
                 }
             }
             $result->close();

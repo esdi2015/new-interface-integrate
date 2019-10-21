@@ -387,10 +387,10 @@
                             $headerDropDown.append('<option value="nofilter">No filter</option>');
                             var resultObj = $.parseJSON(data);
                             $.each(resultObj, function (k, v) {
-                                if(fieldName == 'userid')
+                                if(fieldName == 'user_id')
                                     $headerDropDown.append('<option value="' + v.id + '">' + v.value + '</option>');
                                 else
-                                     $headerDropDown.append('<option value="' + v.value + '">' + v.value + '</option>');
+                                    $headerDropDown.append('<option value="' + v.value + '">' + v.value + '</option>');
                             });   
                             $('#'+ddName).append($headerDropDown);    
                         }
