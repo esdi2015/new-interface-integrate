@@ -80,8 +80,10 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
 <?php
 }
 } else {
+    header("Location: /");
+    exit;
     ?>
-    <div class="container">
+    <!--<div class="container">
         <form class="form-signin" name="login" action="login.php" method="post">
             <h2 class="form-signin-heading">
                 Please sign in
@@ -100,7 +102,7 @@ if ($IS_CAMPAIGN_MANAGER && !$IS_SUPER_ADMIN && !$IS_ADMIN) {
                 Sign in
             </button>
         </form>
-    </div>
+    </div>-->
     <?php
 }
 ?>

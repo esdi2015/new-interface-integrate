@@ -61,6 +61,7 @@ $CAMPAIGN_STATUSES = array('active', 'disabled');
 if(isset($_SESSION["userCakeUser"]) && is_object($_SESSION["userCakeUser"]))
 {
 	$loggedInUser = $_SESSION["userCakeUser"];
+//    var_dump($_SESSION);
 
     $IS_SUPER_ADMIN = $loggedInUser->checkPermission(array(2));
     $IS_ADMIN = $loggedInUser->checkPermission(array(3));

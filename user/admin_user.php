@@ -58,12 +58,10 @@ if(!userIdExists($userId)){
 $userdetails = fetchUserDetails(NULL, NULL, $userId); //Fetch user details
 $accounts = getAllAccounts();
 $userAccountAttached = getUserAttachedAccounts($userId);
-//var_dump($userAccountAttached);
+
 //Forms posted
 if(!empty($_POST))
 {
-    //var_dump($_POST);
-    //die();
 	//Delete selected account
 	if(!empty($_POST['delete'])){
 		$deletions = $_POST['delete'];
@@ -100,7 +98,6 @@ if(!empty($_POST))
 					$errors[] = lang("SQL_ERROR");
 				}
 			}
-			
 		}
 		else {
 			$displayname = $userdetails['display_name'];
@@ -166,40 +163,60 @@ if(!empty($_POST))
 				}
 			}
 		}
-		
-		//Remove permission level
-		if(!empty($_POST['removePermission'])){
-			$remove = $_POST['removePermission'];
-			if ($deletion_count = removePermission($remove, $userId)){
-				$successes[] = lang("ACCOUNT_PERMISSION_REMOVED", array ($deletion_count));
-			}
-			else {
-				$errors[] = lang("SQL_ERROR");
-			}
-		}
-		
-		if(!empty($_POST['addPermission'])){
-			$add = $_POST['addPermission'];
-			if ($addition_count = addPermission($add, $userId)){
-				$successes[] = lang("ACCOUNT_PERMISSION_ADDED", array ($addition_count));
-			}
-			else {
-				$errors[] = lang("SQL_ERROR");
-			}
-		}
 
-        if (!empty($_POST['accounts'])) {
-            //var_dump($userAccountAttached); die();
-            if (is_null($userAccountAttached)) {
-                $attach = insertUserAttachedAccounts($userId, $_POST['accounts']);
-                //var_dump($attach); die();
-                if ($attach) {
-                    $successes[] = lang("ATTACHMENTS_UPDATED");
-                } else {
+        $userPermissionCount = count(fetchUserPermissions($userId));
+        $removePermissionCount = count($_POST['removePermission']);
+        $addPermissionCount = count($_POST['addPermission']);
+
+        if (($userPermissionCount - $removePermissionCount + $addPermissionCount) > 0) {
+            //Remove permission level
+            if(!empty($_POST['removePermission'])){
+                $remove = $_POST['removePermission'];
+                if ($deletion_count = removePermission($remove, $userId)){
+                    $successes[] = lang("ACCOUNT_PERMISSION_REMOVED", array ($deletion_count));
+                }
+                else {
                     $errors[] = lang("SQL_ERROR");
                 }
-            } else {
-               // if (($userAccountAttached[0]['obj_id'] != $_POST['accounts'])) {
+            }
+
+            if(!empty($_POST['addPermission'])){
+                $add = $_POST['addPermission'];
+                if ($addition_count = addPermission($add, $userId)){
+                    $successes[] = lang("ACCOUNT_PERMISSION_ADDED", array ($addition_count));
+                }
+                else {
+                    $errors[] = lang("SQL_ERROR");
+                }
+            }
+        } else {
+            $errors[] = lang("ACCOUNT_MUST_HAVE_PERMISSIONS");
+        }
+
+
+        $arrUserAccountAttached = array();
+        $arrPostAccounts = array();
+        if (!empty($userAccountAttached)) {
+            foreach($userAccountAttached as $uaa) {
+                $arrUserAccountAttached[] = $uaa['obj_id'];
+            }
+        }
+        if (!empty($_POST['accounts'])) {
+            foreach($_POST['accounts'] as $pa) {
+                $arrPostAccounts[] = (int)$pa;
+            }
+        }
+
+        if ($arrUserAccountAttached != $arrPostAccounts) {
+            if (!empty($_POST['accounts'])) {
+                if (is_null($userAccountAttached)) {
+                    $attach = insertUserAttachedAccounts($userId, $_POST['accounts']);
+                    if ($attach) {
+                        $successes[] = lang("ATTACHMENTS_UPDATED");
+                    } else {
+                        $errors[] = lang("SQL_ERROR");
+                    }
+                } else {
                     $remove_attach = removeUserAttachedAccounts($userId);
                     if ($remove_attach) {
                         $attach = insertUserAttachedAccounts($userId, $_POST['accounts']);
@@ -211,15 +228,15 @@ if(!empty($_POST))
                     } else {
                         $errors[] = lang("SQL_ERROR");
                     }
-               // }
-            }
-        } else {
-            if (!empty($userAccountAttached)) {
-                $remove_attach = removeUserAttachedAccounts($userId);
-                if ($remove_attach) {
-                    $successes[] = lang("ATTACHMENTS_UPDATED");
-                } else {
-                    $errors[] = lang("SQL_ERROR");
+                }
+            } else {
+                if (!empty($userAccountAttached)) {
+                    $remove_attach = removeUserAttachedAccounts($userId);
+                    if ($remove_attach) {
+                        $successes[] = lang("ATTACHMENTS_UPDATED");
+                    } else {
+                        $errors[] = lang("SQL_ERROR");
+                    }
                 }
             }
         }
@@ -326,9 +343,8 @@ echo"
 </div>
 
 <h3>Attach to</h3>
-<div id='attachbox'>
-<!--<input type='checkbox' name='accounts[0]' id='accounts[0]' value='0'>
-<label for='accounts[0]'>Not set</label><br>-->";
+<div id='attachbox'>";
+
 $userAccountAttachedIds = array();
 if (is_array($userAccountAttached)) {
     foreach ($userAccountAttached as $v) {
@@ -344,10 +360,6 @@ foreach ($accounts as $v1) {
         echo "<input type='checkbox' name='accounts[".$v1['id']."]' id='accounts[".$v1['id']."]' value='".$v1['id']."'>
         <label for='accounts[".$v1['id']."]'>".$v1['title']."</label><br>";
     }
-
-//    if(!isset($userPermission[$v1['id']])){
-//        echo "<br><input type='checkbox' name='addPermission[".$v1['id']."]' id='addPermission[".$v1['id']."]' value='".$v1['id']."'> ".$v1['name'];
-//    }
 }
 echo "
 </div>

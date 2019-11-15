@@ -7,7 +7,7 @@ ob_start();
         <title>File uploading system</title>
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-		<script src="js/jquery.bootstrap.pagination.js" type="text/javascript"></script>
+		<script src="/js/jquery.bootstrap.pagination.js" type="text/javascript"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
     </head>
     <body>

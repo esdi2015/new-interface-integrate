@@ -1,14 +1,18 @@
 <?php
 	require_once("models/config.php");
 	require_once("../config.php");
-
+//$loggedInUser = null;
 if ($loggedInUser->checkPermission(array(2))) {
     $accounts = getAllAccounts();
 } else {
     $accounts = getAllAccounts();
     $user_accounts = getUserAttachedAccounts($loggedInUser->user_id);
+    $user_accounts_ids = array();
+    foreach($user_accounts as $ua) {
+        $user_accounts_ids[] = $ua['obj_id'];
+    }
     foreach($accounts as $k=>$acc) {
-        if ($acc['id'] != $user_accounts[$k]['obj_id']) {
+        if (!in_array($acc['id'], $user_accounts_ids)) {
             unset($accounts[$k]);
         }
     }
@@ -68,19 +72,21 @@ if ($loggedInUser->checkPermission(array(2))) {
 
         $("#campaign_filter").on("keyup", function() {
             var value = $(this).val().toLowerCase();
+
             if (not_found == true) {
                 $('#campaign_select').html(select_option);
             }
             $("#campaign_select option").filter(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1)
             });
-            if ($("#campaign_select option:visible").length != 0) {
+
+            if ($('#campaign_select option:not([style*="display: none"])').length !== 0) {
                 select_option = $("#campaign_select").html();
             } else {
                 $('#campaign_select').html("<option value='-1'>- Not found -</option>");
                 not_found = true;
             }
-            $("#campaign_select option:visible:first").prop('selected', true);
+            $('#campaign_select option:not([style*="display: none"]):first').prop('selected', true);
         });
 
         $('#account_select').on('change', function(e){

@@ -58,7 +58,7 @@ function adminSubmenuTop($user_permissions) {
     </li>
     ";
 
-    if (in_array($user_permissions, array(1,2))) {
+    if (in_array($user_permissions, array(1,2,3))) {
         echo "
         <li>
             <a href='leads_statuses.php'>
@@ -72,6 +72,12 @@ function adminSubmenuTop($user_permissions) {
 function adminSubmenuBottom($user_permissions) {
     global $websiteUrl;
 
+    echo "
+        <li class='sidebar-brand' style='color: silver;'>
+            Current user
+        </li>
+    ";
+
     if (in_array($user_permissions, array(2))) {
         echo "
         <!--<li>
@@ -79,9 +85,9 @@ function adminSubmenuBottom($user_permissions) {
                 Manage permissions
             </a>
         </li>-->
-        <li class='sidebar-brand' style='color: silver;'>
+        <!--<li class='sidebar-brand' style='color: silver;'>
             Current user
-        </li>
+        </li>-->
         <li>
             <a href='user_settings.php'>
                 User Settings
@@ -90,7 +96,7 @@ function adminSubmenuBottom($user_permissions) {
         ";
     }
 
-    if (in_array($user_permissions, array(1,2))) {
+    if (in_array($user_permissions, array(1,2,3))) {
         echo "
         <li>
             <a href='".$websiteUrl."'>

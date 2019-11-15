@@ -14,10 +14,14 @@
     $siteURL = getSiteURL();
     $callbackString = "callback=".$siteURL."my/lead/status.php";
 
+    //var_dump($callbackString); die();
+
     if ( 0 < $_FILES['file']['error'] ) {
 		echo 'Oops ! Something gone wrong !<br/>';
         echo 'Error: ' . $_FILES['file']['error'] . '<br>';
     } else {
+        set_time_limit(600);
+
         $campaign_id = $_POST['campaign_id'];
         $campaign = fetchCampaignDetails($campaign_id);
         $source_id = $campaign['source_id'];
@@ -102,7 +106,8 @@
                         )));
 
                     } catch (Exception $e) {
-
+                        file_put_contents($log_file, "\nerror\n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, $e->getMessage(), FILE_APPEND | LOCK_EX);
                     }
 
                     file_put_contents($log_file, "\nresult\n", FILE_APPEND | LOCK_EX);

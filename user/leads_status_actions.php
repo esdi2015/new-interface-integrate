@@ -64,9 +64,17 @@ try {
                     -- GROUP BY lead_id
                     -- HAVING (MAX(upload_no))
                     ORDER BY " . $jtSorting . " LIMIT " . $_GET["jtStartIndex"] . "," . $_GET["jtPageSize"];
+        } elseif ($IS_ADMIN) {
+            $query = "SELECT id, lead_id, source_id, source_alias, email, status,
+                    user_id, filename, reason, uploaded_at
+                    FROM csv_status_leads ".$filters."
+                    WHERE user_id = ".$loggedInUser->user_id."
+                    -- GROUP BY lead_id
+                    -- HAVING (MAX(upload_no))
+                    ORDER BY " . $jtSorting . " LIMIT " . $_GET["jtStartIndex"] . "," . $_GET["jtPageSize"];
         }
 
-        //var_dump($query);
+//        var_dump($query);
         //var_dump(strstr($query, 'LIMIT', true));
         //Get record count
         $result = $mysqli->prepare(strstr($query, 'LIMIT', true));

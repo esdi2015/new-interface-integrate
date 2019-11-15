@@ -13,21 +13,33 @@ if(isUserLoggedIn())
 	$loggedInUser->userLogOut();
 }
 
+//var_dump($_SERVER['HTTP_REFERER'], $websiteUrl); die();
+
+if (strpos($_SERVER['HTTP_REFERER'], 'https://') === false) {
+    $http_s = 'http://';
+} else {
+    $http_s = 'https://';
+}
+
 if(!empty($websiteUrl)) 
 {
 	$add_http = "";
-	
-	if(strpos($websiteUrl,"http://") === false)
+    //$http_s = 'http'.(empty($_SERVER['HTTPS'])?'':'s').'://';
+    //$http_s = 'https://';
+	if(strpos($websiteUrl, $http_s) === false)
 	{
-		$add_http = "http://";
+		$add_http = $http_s;
 	}
-	
+//	var_dump($http_s, $websiteUrl, $_SERVER['HTTP_HOST'], strpos($websiteUrl, $http_s),
+//        $_SERVER['HTTPS'], empty($_SERVER['HTTPS'])); die();
 	header("Location: ".$add_http.$websiteUrl);
 	die();
 }
 else
 {
-	header("Location: http://".$_SERVER['HTTP_HOST']);
+    //$http_s = 'http'.(empty($_SERVER['HTTPS'])?'':'s').'://';
+    //$http_s = 'http://';
+	header("Location: ".$http_s.$_SERVER['HTTP_HOST']);
 	die();
 }	
 

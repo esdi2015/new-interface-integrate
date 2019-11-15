@@ -54,6 +54,7 @@ $lang = array_merge($lang,array(
 	"ACCOUNT_PERMISSION_ADDED"		=> "Added access to %m1% permission levels",
 	"ACCOUNT_PERMISSION_REMOVED"		=> "Removed access from %m1% permission levels",
 	"ACCOUNT_INVALID_USERNAME"		=> "Invalid username",
+    "ACCOUNT_MUST_HAVE_PERMISSIONS" => "Account must have the permissions",
 	));
 
 //Configuration

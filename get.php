@@ -112,10 +112,26 @@ if ($action == "get_results") {
         }
         
         $result = array();
+//        $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
+//                                           f.errors_count, uc.source_alias
+//                                    FROM csv_uploaded_files f
+//                                    LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
+//                                    WHERE f.user_id='" . $_POST['user_id'] . "'
+//                                    ORDER BY f.uploaded_at DESC
+//                                    LIMIT $offset, $records_limit");
+
         $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
-                                           f.errors_count, uc.source_alias
+                                           COALESCE(ls.errCount, 0) AS errors_count,
+                                           -- f.errors_count,
+                                           uc.source_alias
                                     FROM csv_uploaded_files f
                                     LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
+                                    LEFT JOIN (
+                                        SELECT COUNT(1) AS errCount, file_id
+                                        FROM csv_status_leads ls
+                                        WHERE ls.status = 'Rejected'
+                                        GROUP BY file_id
+                                        ) AS ls ON ls.file_id = f.id
                                     WHERE f.user_id='" . $_POST['user_id'] . "'
                                     ORDER BY f.uploaded_at DESC
                                     LIMIT $offset, $records_limit");
@@ -168,10 +184,25 @@ if ($action == "get_results") {
 //                                    ORDER BY uploaded_at
 //                                    DESC LIMIT $offset, $records_limit");
 
+//        $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
+//                                           f.errors_count, uc.source_alias
+//                                    FROM csv_uploaded_files f
+//                                    LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
+//                                    ORDER BY f.uploaded_at DESC
+//                                    LIMIT $offset, $records_limit");
+
         $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
-                                           f.errors_count, uc.source_alias
+                                           COALESCE(ls.errCount, 0) AS errors_count,
+                                           -- f.errors_count,
+                                           uc.source_alias
                                     FROM csv_uploaded_files f
                                     LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
+                                    LEFT JOIN (
+                                        SELECT COUNT(1) AS errCount, file_id
+                                        FROM csv_status_leads ls
+                                        WHERE ls.status = 'Rejected'
+                                        GROUP BY file_id
+                                        ) AS ls ON ls.file_id = f.id
                                     ORDER BY f.uploaded_at DESC
                                     LIMIT $offset, $records_limit");
 

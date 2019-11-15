@@ -28,11 +28,11 @@
         $replaceLead = pushToDatabaseLeadStatus($dataLead, $mysqli);
 
         $file_id = getFileIdByLeadUid($dataLead['Id'], $mysqli);
-        $error_count = getLeadsErrorCountByFileId($file_id, $mysqli);
+//        $error_count = getLeadsErrorCountByFileId($file_id, $mysqli);
 
-        if ($dataLead['Status'] == 'Rejected') {
-            updateErrorCounter($file_id, $mysqli, 1);
-        }
+//        if ($dataLead['Status'] == 'Rejected') {
+//            updateErrorCounter($file_id, $mysqli, 1);
+//        }
 
         $result = array();
         if ($replaceLead == 1) {

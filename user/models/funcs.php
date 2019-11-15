@@ -7,7 +7,16 @@ http://usercake.com
 //Functions that do not interact with DB
 //------------------------------------------------------------------------------
 function getSiteURL() {
-    $siteURL='http'.(empty($_SERVER['HTTPS'])?'':'s').'://'.$_SERVER['HTTP_HOST'].'/';
+    //$siteURL='http'.(empty($_SERVER['HTTPS'])?'':'s').'://'.$_SERVER['HTTP_HOST'].'/';
+
+    if (strpos($_SERVER['HTTP_HOST'], 'integrate.infusemedia.com') !== false) {
+        $siteURL='https://'.$_SERVER['HTTP_HOST'].'/';
+    } else if (strpos($_SERVER['HTTP_HOST'], 'insegment-leads.loc') !== false) {
+        $siteURL='http://'.$_SERVER['HTTP_HOST'].'/';
+    } else {
+        $siteURL='http://'.$_SERVER['HTTP_HOST'].'/';
+    }
+
     return $siteURL;
 }
 

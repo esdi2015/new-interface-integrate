@@ -112,7 +112,7 @@ ob_start();
     echo '</b>
           </p>';
 
-    if (!$loggedInUser->checkPermission(array(3))){
+    //if (!$loggedInUser->checkPermission(array(3))){
         echo '
             <p class="nav navbar-text">
             <a href="javascript:changePage(1, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-list"></span> My History (<i id="history_count"></i>)</a>
@@ -120,7 +120,7 @@ ob_start();
             <p class="nav navbar-text">
             <a href="javascript:changePage(2, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-upload"></span> New Upload</a>
             </p>';
-    }
+    //}
 
     echo '
           </div>
@@ -208,11 +208,12 @@ ob_start();
                 }
             }
             <?php
-            if ($loggedInUser->checkPermission(array(3))){
-                echo "changePage(1, null);";
-            } else {
+//            if ($loggedInUser->checkPermission(array(3))){
+//                echo "changePage(1, null);";
+//            } else {
+//                echo "changePage(2, null);";
+//            }
                 echo "changePage(2, null);";
-            }
             ?>
 
         </script>
