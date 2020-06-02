@@ -99,20 +99,21 @@ ob_start();
 		</form>
 		</div>';
 		die();
-	}
-	echo '<nav class="navbar navbar-default">
+	} else {
+
+        echo '<nav class="navbar navbar-default">
           <div class="container-fluid">
           <div>
           <p class="nav navbar-text">
           You are signed in as <b>'.$loggedInUser->username;
-          echo '(<a href="user/index_admin.php" class = "navbar-link">Administration panel</a>)';
+        echo '(<a href="user/index_admin.php" class = "navbar-link">Administration panel</a>)';
 //          if ($loggedInUser->checkPermission(array(1,2,3))){
 //         	echo '(<a href="user/index_admin.php" class = "navbar-link">Administration panel</a>)';
 //          }
-    echo '</b>
+        echo '</b>
           </p>';
 
-    //if (!$loggedInUser->checkPermission(array(3))){
+        //if (!$loggedInUser->checkPermission(array(3))){
         echo '
             <p class="nav navbar-text">
             <a href="javascript:changePage(1, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-list"></span> My History (<i id="history_count"></i>)</a>
@@ -120,9 +121,9 @@ ob_start();
             <p class="nav navbar-text">
             <a href="javascript:changePage(2, null, null)" style="text-decoration: none;" class="navbar-link"><span class="glyphicon glyphicon-upload"></span> New Upload</a>
             </p>';
-    //}
+        //}
 
-    echo '
+        echo '
           </div>
           <div>
           <p class="nav navbar-text navbar-right" style="padding-right: 25px;">
@@ -133,15 +134,15 @@ ob_start();
           </nav>
           <div class="container" id="result_div"></div>
           <div id="loadingDiv" class="container text-center"><img src="images/loading.gif" width="72" height="72" /></div>';
-		?>
+        ?>
         <script>
             var showAll=false;
-        	function setCurrentPage(page){
-        		$('#hidden_page').val(page);
-        	}
-        	function getCurrentPage(){
-        		return $('#hidden_page').val();
-        	}
+            function setCurrentPage(page){
+                $('#hidden_page').val(page);
+            }
+            function getCurrentPage(){
+                return $('#hidden_page').val();
+            }
             function getHistoryCount() {
                 var form_data = new FormData();
                 form_data.append('user_id', <?php echo $loggedInUser->user_id; ?>);
@@ -163,10 +164,10 @@ ob_start();
 
             function changePage(page, xdata, xpage) {
                 if(page == 1) {
-                	var qdata = "";
-                	if(xpage != null){
-                		qdata = "page="+xpage;
-                	}
+                    var qdata = "";
+                    if(xpage != null){
+                        qdata = "page="+xpage;
+                    }
                     $.ajax({
                         url: 'user/dashboard_history.php',
                         cache: false,
@@ -217,6 +218,9 @@ ob_start();
             ?>
 
         </script>
+     <?php
+    }
+    ?>
 </body>
 </html>
 <?php

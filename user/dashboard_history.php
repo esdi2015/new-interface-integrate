@@ -46,7 +46,7 @@
                     .hide();
             },
             success: function(response) {
-            	var headHtml = '<tr><th>ID</th><th>Uploaded at</th><th>File name</th><th>IP</th><th>Errors</th>';
+            	var headHtml = '<tr><th>ID</th><th>Uploaded at</th><th>File name</th><th>IP</th><th>Sent</th><th>Passed</th><th>Errors</th><th>Campaign</th>';
                 
                 if(showAll){
                 	headHtml += '<th>User</th>';
@@ -66,7 +66,10 @@
                     trHTML += '<td>' + item.uploaded_at + '</td>';
                     trHTML += '<td>' + item.filename + '</td>';
                     trHTML += '<td>' + item.ip + '</td>';
+                    trHTML += '<td>' + item.sent_count + '</td>';
+                    trHTML += '<td>' + '' + '</td>';
                     trHTML += '<td>' + item.errors_count + '</td>';
+                    trHTML += '<td>' + '' + '</td>';
                     if(showAll){
                     	trHTML += '<td>' + item.user_id + '</td>';
                     }

@@ -121,6 +121,7 @@ if ($action == "get_results") {
 //                                    LIMIT $offset, $records_limit");
 
         $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
+                                           COALESCE(f.sent, '') AS sent_count,
                                            COALESCE(ls.errCount, 0) AS errors_count,
                                            -- f.errors_count,
                                            uc.source_alias
@@ -138,7 +139,7 @@ if ($action == "get_results") {
 
         //var_dump($sql);
         $sql->execute();
-        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count, $source_alias);
+        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $sent_count, $errors_count, $source_alias);
         $current_count = 0;
         while ($sql->fetch()) {
             $current_count++;
@@ -158,6 +159,7 @@ if ($action == "get_results") {
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
                 'ip' => $ip,
+                'sent_count' => $sent_count,
                 'errors_count' => $errors_count,
                 'source_alias' => $source_alias
             );
@@ -192,6 +194,7 @@ if ($action == "get_results") {
 //                                    LIMIT $offset, $records_limit");
 
         $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
+                                           COALESCE(f.sent, '') AS sent_count,
                                            COALESCE(ls.errCount, 0) AS errors_count,
                                            -- f.errors_count,
                                            uc.source_alias
@@ -209,7 +212,7 @@ if ($action == "get_results") {
         //var_dump($sql);
 
         $sql->execute();
-        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $errors_count, $source_alias);
+        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $sent_count, $errors_count, $source_alias);
         $current_count = 0;
         while ($sql->fetch()) {
             $current_count++;
@@ -232,6 +235,7 @@ if ($action == "get_results") {
                 'uploaded_at' => $uploaded_at,
                 'filename' => $filename,
                 'ip' => $ip,
+                'sent_count' => $sent_count,
                 'errors_count' => $errors_count,
                 'source_alias' => $source_alias
             );

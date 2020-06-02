@@ -13,16 +13,17 @@
         $log_file = 'log_status.txt';
 
         file_put_contents($log_file, "\n=== ".$date_now." ===\n", FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, "\npost_data\n", FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, $post_data, FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, "\npost_data\n", FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, $post_data, FILE_APPEND | LOCK_EX);
         file_put_contents($log_file, "\nHTTP_RAW_POST_DATA\n", FILE_APPEND | LOCK_EX);
         file_put_contents($log_file, $HTTP_RAW_POST_DATA, FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, "\nPOST_DATA\n", FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, $_POST, FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, "\nGET_DATA\n", FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, $_GET, FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, "\nREQUEST_URI_DATA\n", FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, $_SERVER['REQUEST_URI']."\n\n", FILE_APPEND | LOCK_EX);
+        file_put_contents($log_file, "\n", FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, "\nPOST_DATA\n", FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, $_POST, FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, "\nGET_DATA\n", FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, $_GET, FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, "\nREQUEST_URI_DATA\n", FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, $_SERVER['REQUEST_URI']."\n\n", FILE_APPEND | LOCK_EX);
 
         $dataLead =  prepareDataToPush($HTTP_RAW_POST_DATA);
         $replaceLead = pushToDatabaseLeadStatus($dataLead, $mysqli);
@@ -50,8 +51,8 @@
     function prepareDataToPush($data) {
         global $log_file;
         $arr = json_decode($data, true);
-        file_put_contents($log_file, "\n$arr\n", FILE_APPEND | LOCK_EX);
-        file_put_contents($log_file, $arr."\n\n", FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, "\n$arr\n", FILE_APPEND | LOCK_EX);
+//        file_put_contents($log_file, $arr."\n\n", FILE_APPEND | LOCK_EX);
         foreach ($arr as $a) {
             file_put_contents($log_file, $a."\n", FILE_APPEND | LOCK_EX);
         }
@@ -146,13 +147,21 @@
             return $result;
         } else {
             $max_upload_no = getMaxUploadNoLeadUid($data['Id'], $context);
+            // $sql = $context->prepare("UPDATE csv_status_leads
+            //                             SET status = ?,
+            //                                 reason = ?,
+            //                                 uploaded_at = ?
+            //                           WHERE lead_id = ? AND upload_no = ?");
+
             $sql = $context->prepare("UPDATE csv_status_leads
                                          SET status = ?,
-                                             reason = ?,
-                                             uploaded_at = ?
+                                             reason = ?
                                        WHERE lead_id = ? AND upload_no = ?");
+
             try {
-                $sql->bind_param('ssssi', $data['Status'], $data['Reason'], $data['Timestamp'], $data['Id'], $max_upload_no);
+              //  $sql->bind_param('ssssi', $data['Status'], $data['Reason'], $data['Timestamp'], $data['Id'], $max_upload_no);
+		$sql->bind_param('sssi', $data['Status'], $data['Reason'], $data['Id'], $max_upload_no);
+
                 $result = $sql->execute();
             } catch (Exception $ex) {
                 $result = $ex->getMessage();

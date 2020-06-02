@@ -14,13 +14,13 @@
     $siteURL = getSiteURL();
     $callbackString = "callback=".$siteURL."my/lead/status.php";
 
-    //var_dump($callbackString); die();
+        //var_dump($callbackString); die();
 
     if ( 0 < $_FILES['file']['error'] ) {
 		echo 'Oops ! Something gone wrong !<br/>';
         echo 'Error: ' . $_FILES['file']['error'] . '<br>';
     } else {
-        set_time_limit(600);
+        set_time_limit(3600);
 
         $campaign_id = $_POST['campaign_id'];
         $campaign = fetchCampaignDetails($campaign_id);
@@ -69,8 +69,10 @@
 			"campaign_id" => $campaign_id);
 
 		$uploaded_file_id = pushToDatabase($pushData, $mysqli, true);
+        $leads_counter = 0;
 
 		foreach ($csv as $index => &$row) {
+            $leads_counter++;
 			$item = array_combine($csv[0], $row);
             $_lead_id = null;
             if (!empty($item['LeadID'])) {
@@ -88,11 +90,14 @@
 
                     date_default_timezone_set('Europe/Kiev');
                     $date_now = date('Y-m-d H:i:s');
-                    $log_file = 'log_result.txt';
+                    $logs_folder = 'logs_leads/';
+                    $log_file = $logs_folder.date('Y_m_d').'_log_result.txt';
+                    $log_file_errors = 'log_errors.txt';
 
-                    file_put_contents($log_file, "\n === ".$date_now." === \n", FILE_APPEND | LOCK_EX);
-                    file_put_contents($log_file, "\nurl\n", FILE_APPEND | LOCK_EX);
-                    file_put_contents($log_file, $url, FILE_APPEND | LOCK_EX);
+                    $data_to_log = "";
+                    foreach($item as $k => $v) {
+                        $data_to_log = $data_to_log.$k.": ".$v."\n";
+                    }
 
 					$result = null;
 
@@ -106,16 +111,32 @@
                         )));
 
                     } catch (Exception $e) {
-                        file_put_contents($log_file, "\nerror\n", FILE_APPEND | LOCK_EX);
-                        file_put_contents($log_file, $e->getMessage(), FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file_errors, "\nerror\n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file_errors, $e->getMessage(), FILE_APPEND | LOCK_EX);
                     }
 
-                    file_put_contents($log_file, "\nresult\n", FILE_APPEND | LOCK_EX);
-                    file_put_contents($log_file, $result, FILE_APPEND | LOCK_EX);
+                    try {
+                        file_put_contents($log_file, "\n === ".$date_now." === \n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, "\nurl\n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, $url."\n", FILE_APPEND | LOCK_EX);
 
-                    $result = json_decode($result, true);
-                    file_put_contents($log_file, "\nresult (json_decode)\n", FILE_APPEND | LOCK_EX);
-                    file_put_contents($log_file, print_r($result)."\n\n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, "\n".$data_to_log."\n", FILE_APPEND | LOCK_EX);
+
+                        file_put_contents($log_file, "\ndata\n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, $query, FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, "\n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, "\nresult\n", FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, $result, FILE_APPEND | LOCK_EX);
+                        file_put_contents($log_file, "\n", FILE_APPEND | LOCK_EX);
+
+                        $result = json_decode($result, true);
+//                        file_put_contents($log_file, "\nresult (json_decode)\n", FILE_APPEND | LOCK_EX);
+//                        file_put_contents($log_file, print_r($result)."\n\n", FILE_APPEND | LOCK_EX);
+                    }  catch (Exception $e) {
+//                        echo $e->getMessage();
+                        file_put_contents($log_file_errors, $e->getMessage()."\n", FILE_APPEND | LOCK_EX);
+                    }
+
 
                     $pushDataLead = array(
                         'lead_id' => (!is_null($_lead_id) ? $_lead_id : ((!is_null($result)) ? $result['result'][0] : 'upload - '.time())),
@@ -132,12 +153,22 @@
 						'file_id' => $uploaded_file_id);
 
                     pushLeadsToDatabase($pushDataLead, $mysqli);
-                    echo $index." is success\n";
-				}else{
-					echo $index." is empty\n";
+//                    echo $index." is success\n";
+                    file_put_contents($log_file, "\n".$leads_counter." - ".$_FILES['file']['name']." - is success\n", FILE_APPEND | LOCK_EX);
+				} else {
+                    file_put_contents($log_file_errors, "\n".$leads_counter." - ".$_FILES['file']['name']." - is empty\n", FILE_APPEND | LOCK_EX);
+//					echo $index." is empty\n";
 				}
 			}
 		}
+
+        try {
+            file_put_contents("log_test.txt", $uploaded_file_id." - ".$leads_counter."\n", FILE_APPEND | LOCK_EX);
+            pushSentLeadsCount($uploaded_file_id, $leads_counter, $mysqli);
+        } catch (Exception $e) {
+            file_put_contents("log_test.txt", " error sent inserting \n", FILE_APPEND | LOCK_EX);
+        }
+
 
 //		if(count($array_items) > 0){
 //			$fp = fopen($newFileNameDownload, 'w');
@@ -211,6 +242,20 @@
             return $insert_id;
         }
     }
+
+
+    function pushSentLeadsCount($file_id, $sent_count, $context) {
+        $sql = $context->prepare("UPDATE csv_uploaded_files
+		SET sent = ?
+		WHERE
+		id = ?
+		LIMIT 1");
+        $sql->bind_param("ii", $sent_count, $file_id);
+        $result = $sql->execute();
+        $sql->close();
+        return $result;
+    }
+
 
 	function remove_utf8_bom($text)
 	{

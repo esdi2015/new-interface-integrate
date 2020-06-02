@@ -703,29 +703,29 @@ function flagLostPasswordRequest($username,$value)
 function isUserLoggedIn()
 {
 	global $loggedInUser,$mysqli,$db_table_prefix;
-	$stmt = $mysqli->prepare("SELECT 
-		id,
-		password
-		FROM ".$db_table_prefix."users
-		WHERE
-		id = ?
-		AND 
-		password = ? 
-		AND
-		active = 1
-		LIMIT 1");
-	$stmt->bind_param("is", $loggedInUser->user_id, $loggedInUser->hash_pw);	
-	$stmt->execute();
-	$stmt->store_result();
-	$num_returns = $stmt->num_rows;
-	$stmt->close();
-	
-	if($loggedInUser == NULL)
+	if(is_null($loggedInUser))
 	{
 		return false;
 	}
 	else
 	{
+        $stmt = $mysqli->prepare("SELECT
+		id,
+		password
+		FROM ".$db_table_prefix."users
+		WHERE
+		id = ?
+		AND
+		password = ?
+		AND
+		active = 1
+		LIMIT 1");
+        $stmt->bind_param("is", $loggedInUser->user_id, $loggedInUser->hash_pw);
+        $stmt->execute();
+        $stmt->store_result();
+        $num_returns = $stmt->num_rows;
+        $stmt->close();
+
 		if ($num_returns > 0)
 		{
 			return true;

@@ -52,6 +52,8 @@ session_start();
 
 //Global User Object Var
 //loggedInUser can be used globally if constructed
+$loggedInUser = null;
+
 $IS_SUPER_ADMIN = false;
 $IS_ADMIN = false;
 $IS_CAMPAIGN_MANAGER = false;
