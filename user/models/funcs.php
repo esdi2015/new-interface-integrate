@@ -337,7 +337,7 @@ function getAccountCampaigns($account_id=null)
 function insertRemoteCampaignStatsBatch($stats) {
     global $mysqli;
     $i = 0;
-    $stmt = $mysqli->prepare("INSERT INTO api_leads_stats
+    $stmt = $mysqli->prepare("REPLACE INTO api_leads_stats
             (campaign_id, source_id, status, goal, accepted, rejected)
             VALUES
             (?, ?, ?, ?, ?, ?)");
@@ -425,6 +425,27 @@ function fetchAllCampaignsStats($offset, $records_limit, $user_id=null)
             'auth_string' => $auth_string,
             'campaign_id' => $campaign_id
         );
+        array_push($result, $row);
+
+    }
+    $sql->close();
+    return $result;
+}
+
+
+function fetchCachedCampaignIds($campaign_ids) {
+    global $mysqli;
+    $result = array();
+
+    $sql = $mysqli->prepare("SELECT als.campaign_id
+                             FROM api_leads_stats als
+                             WHERE als.last_update > DATE_SUB(NOW(),INTERVAL 5 MINUTE)
+                             AND als.campaign_id in ($campaign_ids)");
+
+    $sql->execute();
+    $sql->bind_result($campaign_id);
+    while ($sql->fetch()) {
+        $row = $campaign_id;
         array_push($result, $row);
 
     }

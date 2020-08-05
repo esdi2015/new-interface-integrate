@@ -4,13 +4,13 @@ require_once('config.php');
 require_once('user/models/funcs.php');
 
 
-$source_ids = array(array('source_id'=>'6670A6', 'org_id'=>'07420798-d492-4f5a-b1bf-46ec24e84708',
-                          'token'=>'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjA3NDIwNzk4LWQ0OTItNGY1YS1iMWJmLTQ2ZWMyNGU4NDcwOCIsIkV4cGlyZXMiOiIyMjAwLTA3LTE1VDE1OjA4OjQ5LjAzMjMxMzhaIiwiRW1haWwiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIkZpcnN0TmFtZSI6InBlbmFnb3NAaW5mdXNlbWVkaWEuY29tIiwiTGFzdE5hbWUiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIk9yZ2FuaXphdGlvbklkcyI6W10sIk9yZ2FuaXphdGlvbkNsYWltcyI6W3siT3JnYW5pemF0aW9uSWQiOiIwNzQyMDc5OC1kNDkyLTRmNWEtYjFiZi00NmVjMjRlODQ3MDgiLCJDbGFpbXMiOlsiVXNlciJdfV0sIk9yZ2FuaXphdGlvbkdyb3VwcyI6W10sIlBlcm1pdHRlZE1hcmtldGVycyI6W119.OfP4liXXDL71FcOrMmYtVCz7s1JPOaMjZdGu185RnUw'),
-                    array('source_id'=>'02B7B3', 'org_id'=>'07420798-d492-4f5a-b1bf-46ec24e84708',
-                          'token'=>'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjA3NDIwNzk4LWQ0OTItNGY1YS1iMWJmLTQ2ZWMyNGU4NDcwOCIsIkV4cGlyZXMiOiIyMjAwLTA3LTE1VDE1OjA4OjQ5LjAzMjMxMzhaIiwiRW1haWwiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIkZpcnN0TmFtZSI6InBlbmFnb3NAaW5mdXNlbWVkaWEuY29tIiwiTGFzdE5hbWUiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIk9yZ2FuaXphdGlvbklkcyI6W10sIk9yZ2FuaXphdGlvbkNsYWltcyI6W3siT3JnYW5pemF0aW9uSWQiOiIwNzQyMDc5OC1kNDkyLTRmNWEtYjFiZi00NmVjMjRlODQ3MDgiLCJDbGFpbXMiOlsiVXNlciJdfV0sIk9yZ2FuaXphdGlvbkdyb3VwcyI6W10sIlBlcm1pdHRlZE1hcmtldGVycyI6W119.OfP4liXXDL71FcOrMmYtVCz7s1JPOaMjZdGu185RnUw'),
-                    array('source_id'=>'C11B1A', 'org_id'=>'1ddd3bed-56d2-4a60-b67f-f3fc1ea31114',
-                          'token'=>'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjFkZGQzYmVkLTU2ZDItNGE2MC1iNjdmLWYzZmMxZWEzMTExNCIsIkV4cGlyZXMiOiIyMjAwLTA3LTE1VDIyOjI2OjM0LjgxMTYyNTVaIiwiRW1haWwiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIkZpcnN0TmFtZSI6InBlbmFnb3NAaW5mdXNlbWVkaWEuY29tIiwiTGFzdE5hbWUiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIk9yZ2FuaXphdGlvbklkcyI6W10sIk9yZ2FuaXphdGlvbkNsYWltcyI6W3siT3JnYW5pemF0aW9uSWQiOiIxZGRkM2JlZC01NmQyLTRhNjAtYjY3Zi1mM2ZjMWVhMzExMTQiLCJDbGFpbXMiOlsiVXNlciJdfV0sIk9yZ2FuaXphdGlvbkdyb3VwcyI6W10sIlBlcm1pdHRlZE1hcmtldGVycyI6W119.TA37GbAkUSCqrCrhqFbWX6owFw5gwxRzIyxTsPV4fPE'),
-                    );
+//$source_ids = array(array('source_id'=>'6670A6', 'org_id'=>'07420798-d492-4f5a-b1bf-46ec24e84708',
+//                          'token'=>'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjA3NDIwNzk4LWQ0OTItNGY1YS1iMWJmLTQ2ZWMyNGU4NDcwOCIsIkV4cGlyZXMiOiIyMjAwLTA3LTE1VDE1OjA4OjQ5LjAzMjMxMzhaIiwiRW1haWwiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIkZpcnN0TmFtZSI6InBlbmFnb3NAaW5mdXNlbWVkaWEuY29tIiwiTGFzdE5hbWUiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIk9yZ2FuaXphdGlvbklkcyI6W10sIk9yZ2FuaXphdGlvbkNsYWltcyI6W3siT3JnYW5pemF0aW9uSWQiOiIwNzQyMDc5OC1kNDkyLTRmNWEtYjFiZi00NmVjMjRlODQ3MDgiLCJDbGFpbXMiOlsiVXNlciJdfV0sIk9yZ2FuaXphdGlvbkdyb3VwcyI6W10sIlBlcm1pdHRlZE1hcmtldGVycyI6W119.OfP4liXXDL71FcOrMmYtVCz7s1JPOaMjZdGu185RnUw'),
+//                    array('source_id'=>'02B7B3', 'org_id'=>'07420798-d492-4f5a-b1bf-46ec24e84708',
+//                          'token'=>'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjA3NDIwNzk4LWQ0OTItNGY1YS1iMWJmLTQ2ZWMyNGU4NDcwOCIsIkV4cGlyZXMiOiIyMjAwLTA3LTE1VDE1OjA4OjQ5LjAzMjMxMzhaIiwiRW1haWwiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIkZpcnN0TmFtZSI6InBlbmFnb3NAaW5mdXNlbWVkaWEuY29tIiwiTGFzdE5hbWUiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIk9yZ2FuaXphdGlvbklkcyI6W10sIk9yZ2FuaXphdGlvbkNsYWltcyI6W3siT3JnYW5pemF0aW9uSWQiOiIwNzQyMDc5OC1kNDkyLTRmNWEtYjFiZi00NmVjMjRlODQ3MDgiLCJDbGFpbXMiOlsiVXNlciJdfV0sIk9yZ2FuaXphdGlvbkdyb3VwcyI6W10sIlBlcm1pdHRlZE1hcmtldGVycyI6W119.OfP4liXXDL71FcOrMmYtVCz7s1JPOaMjZdGu185RnUw'),
+//                    array('source_id'=>'C11B1A', 'org_id'=>'1ddd3bed-56d2-4a60-b67f-f3fc1ea31114',
+//                          'token'=>'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjFkZGQzYmVkLTU2ZDItNGE2MC1iNjdmLWYzZmMxZWEzMTExNCIsIkV4cGlyZXMiOiIyMjAwLTA3LTE1VDIyOjI2OjM0LjgxMTYyNTVaIiwiRW1haWwiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIkZpcnN0TmFtZSI6InBlbmFnb3NAaW5mdXNlbWVkaWEuY29tIiwiTGFzdE5hbWUiOiJwZW5hZ29zQGluZnVzZW1lZGlhLmNvbSIsIk9yZ2FuaXphdGlvbklkcyI6W10sIk9yZ2FuaXphdGlvbkNsYWltcyI6W3siT3JnYW5pemF0aW9uSWQiOiIxZGRkM2JlZC01NmQyLTRhNjAtYjY3Zi1mM2ZjMWVhMzExMTQiLCJDbGFpbXMiOlsiVXNlciJdfV0sIk9yZ2FuaXphdGlvbkdyb3VwcyI6W10sIlBlcm1pdHRlZE1hcmtldGVycyI6W119.TA37GbAkUSCqrCrhqFbWX6owFw5gwxRzIyxTsPV4fPE'),
+//                    );
 
 
 function get_source_ids($offset, $records_limit) {
@@ -77,20 +77,53 @@ function stats_query_execute($source_id) {
     return $result;
 }
 
+
+
+
+
 $offset = 0;
 $records_limit = 20;
 
 $source_ids = get_source_ids($offset, $records_limit);
 
-//print_r($source_ids);
+print_r($source_ids);
+$test_res = null;
+
+$campaign_ids_arr = array();
+$campaign_ids_str = '';
+foreach($source_ids as $k=>$source_id) {
+    $campaign_ids_arr[] = $source_id['campaign_id'];
+}
+$campaign_ids_str = join(",",$campaign_ids_arr);
+
+print_r($campaign_ids_str);
+
+$cached_campaign_ids = fetchCachedCampaignIds($campaign_ids_str);
+
+print_r($cached_campaign_ids);
 
 foreach($source_ids as $k=>$source_id) {
-    $test_res[$source_id['campaign_id']] = stats_query_execute($source_id);
+    if (!in_array($source_id['campaign_id'], $cached_campaign_ids)) {
+        print_r($source_id['campaign_id']."\n");
+        $test_res[$source_id['campaign_id']] = stats_query_execute($source_id);
+    }
 }
+
+//die();
+
+
+
+//foreach($source_ids as $k=>$source_id) {
+//    $test_res[$source_id['campaign_id']] = stats_query_execute($source_id);
+//}
 
 print_r($test_res);
 
-$insert_stats = insertRemoteCampaignStatsBatch($test_res);
+$insert_stats = null;
+if (!is_null($test_res)) {
+    $insert_stats = insertRemoteCampaignStatsBatch($test_res);
+}
+
 
 print_r($insert_stats);
 
