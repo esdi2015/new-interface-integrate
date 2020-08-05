@@ -92,6 +92,10 @@ if(!empty($_POST))
         $campaign_updates['campaign_status'] = trim($_POST['campaign_status']);
     }
 
+    if ($campaign_details['leads_goal'] != $_POST['leads_goal']) {
+        $campaign_updates['leads_goal'] = trim($_POST['leads_goal']);
+    }
+
     $campaign_updates['id'] = $campaignId;
     // $campaign_details = $campaign_updates;
 
@@ -124,6 +128,10 @@ echo "
 <p>
 <label>Campaign Name:</label>
 <input type='text' name='title' value='".$campaign_details['title']."' class='form-control' />
+</p>
+<p>
+<label>Leads goal:</label>
+<input type='text' name='leads_goal' value='".$campaign_details['leads_goal']."' class='form-control' />
 </p>
 <p>
 <label>Source ID:</label>

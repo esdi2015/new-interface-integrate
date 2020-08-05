@@ -43,6 +43,11 @@ function managerSubmenu($user_permissions) {
             Manage campaigns
         </a>
     </li>
+    <li>
+        <a href='stats_campaigns.php'>
+            Campaigns statistic
+        </a>
+    </li>
     ";
 }
 

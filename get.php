@@ -112,16 +112,10 @@ if ($action == "get_results") {
         }
         
         $result = array();
-//        $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
-//                                           f.errors_count, uc.source_alias
-//                                    FROM csv_uploaded_files f
-//                                    LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
-//                                    WHERE f.user_id='" . $_POST['user_id'] . "'
-//                                    ORDER BY f.uploaded_at DESC
-//                                    LIMIT $offset, $records_limit");
 
         $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
                                            COALESCE(f.sent, '') AS sent_count,
+                                           COALESCE(lsp.passCount, '') AS pass_count,
                                            COALESCE(ls.errCount, 0) AS errors_count,
                                            -- f.errors_count,
                                            uc.source_alias
@@ -133,13 +127,19 @@ if ($action == "get_results") {
                                         WHERE ls.status = 'Rejected'
                                         GROUP BY file_id
                                         ) AS ls ON ls.file_id = f.id
+                                    LEFT JOIN (
+                                        SELECT COUNT(1) AS passCount, file_id
+                                        FROM csv_status_leads ls
+                                        WHERE ls.status = 'Accepted'
+                                        GROUP BY file_id
+                                        ) AS lsp ON lsp.file_id = f.id
                                     WHERE f.user_id='" . $_POST['user_id'] . "'
                                     ORDER BY f.uploaded_at DESC
                                     LIMIT $offset, $records_limit");
 
         //var_dump($sql);
         $sql->execute();
-        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $sent_count, $errors_count, $source_alias);
+        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $sent_count, $pass_count, $errors_count, $source_alias);
         $current_count = 0;
         while ($sql->fetch()) {
             $current_count++;
@@ -148,11 +148,7 @@ if ($action == "get_results") {
                     break;
                 }
             }
-            /*$sql_cerr = $mysqli2->prepare("SELECT * FROM csv_uploaded_files_results WHERE parent_id='" . $id . "' AND result LIKE '%<success>0</success>%'");
-        	$sql_cerr->execute();
-        	$sql_cerr->store_result();
-        	$errors_count = $sql_cerr->num_rows;
-        	$sql_cerr->close();*/
+
             $row = array(
                 'id' => $id,
                 'user_id' => $user_id,
@@ -160,15 +156,16 @@ if ($action == "get_results") {
                 'filename' => $filename,
                 'ip' => $ip,
                 'sent_count' => $sent_count,
+                'pass_count' => $pass_count,
                 'errors_count' => $errors_count,
                 'source_alias' => $source_alias
             );
             array_push($result, $row);
-            
         }
+
         $sql->close();
         echo json_encode($result);
-    }else{
+    } else {
         if (isset($_POST['page'])) {
             $page_number = $_POST['page'] - 1;
             $offset      = $records_limit * $page_number;
@@ -181,20 +178,10 @@ if ($action == "get_results") {
         }
         
         $result = array();
-//        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
-//                                    FROM csv_uploaded_files
-//                                    ORDER BY uploaded_at
-//                                    DESC LIMIT $offset, $records_limit");
-
-//        $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
-//                                           f.errors_count, uc.source_alias
-//                                    FROM csv_uploaded_files f
-//                                    LEFT JOIN uc_campaigns uc ON f.campaign_id = uc.id
-//                                    ORDER BY f.uploaded_at DESC
-//                                    LIMIT $offset, $records_limit");
 
         $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
                                            COALESCE(f.sent, '') AS sent_count,
+                                           COALESCE(lsp.passCount, '') AS pass_count,
                                            COALESCE(ls.errCount, 0) AS errors_count,
                                            -- f.errors_count,
                                            uc.source_alias
@@ -206,13 +193,19 @@ if ($action == "get_results") {
                                         WHERE ls.status = 'Rejected'
                                         GROUP BY file_id
                                         ) AS ls ON ls.file_id = f.id
+                                    LEFT JOIN (
+                                        SELECT COUNT(1) AS passCount, file_id
+                                        FROM csv_status_leads ls
+                                        WHERE ls.status = 'Accepted'
+                                        GROUP BY file_id
+                                        ) AS lsp ON lsp.file_id = f.id
                                     ORDER BY f.uploaded_at DESC
                                     LIMIT $offset, $records_limit");
 
         //var_dump($sql);
 
         $sql->execute();
-        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $sent_count, $errors_count, $source_alias);
+        $sql->bind_result($id, $user_id, $uploaded_at, $filename, $ip, $sent_count, $pass_count, $errors_count, $source_alias);
         $current_count = 0;
         while ($sql->fetch()) {
             $current_count++;
@@ -221,11 +214,6 @@ if ($action == "get_results") {
                     break;
                 }
             }
-            /*$sql_cerr = $mysqli2->prepare("SELECT * FROM csv_uploaded_files_results WHERE parent_id='" . $id . "' AND result LIKE '%<success>0</success>%'");
-            $sql_cerr->execute();
-            $sql_cerr->store_result();
-            $errors_count = $sql_cerr->num_rows;
-            $sql_cerr->close();*/
 
             // GET USER INFORMATION
             $user = fetchUserDetailsNew($user_id);
@@ -236,6 +224,7 @@ if ($action == "get_results") {
                 'filename' => $filename,
                 'ip' => $ip,
                 'sent_count' => $sent_count,
+                'pass_count' => $pass_count,
                 'errors_count' => $errors_count,
                 'source_alias' => $source_alias
             );
@@ -258,10 +247,6 @@ if ($action == "get_results") {
         
         
         $result = array();
-//        $sql    = $mysqli->prepare("SELECT id, user_id, uploaded_at, filename, ip, errors_count
-//                                    FROM csv_uploaded_files
-//                                    ORDER BY uploaded_at DESC
-//                                    LIMIT $offset, $records_limit");
 
         $sql    = $mysqli->prepare("SELECT f.id, f.user_id, f.uploaded_at, f.filename, f.ip,
                                            f.errors_count, uc.source_alias

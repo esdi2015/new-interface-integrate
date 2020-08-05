@@ -69,7 +69,7 @@
 			"campaign_id" => $campaign_id);
 
 		$uploaded_file_id = pushToDatabase($pushData, $mysqli, true);
-        $leads_counter = -1;
+        $leads_counter = 0;
 
 		foreach ($csv as $index => &$row) {
             $leads_counter++;
@@ -153,14 +153,6 @@
 						'file_id' => $uploaded_file_id);
 
                     pushLeadsToDatabase($pushDataLead, $mysqli);
-
-                    try {
-                        file_put_contents("log_test.txt", $uploaded_file_id." - ".$leads_counter."\n", FILE_APPEND | LOCK_EX);
-                        pushSentLeadsCount($uploaded_file_id, $leads_counter, $mysqli);
-                    } catch (Exception $e) {
-                        file_put_contents("log_test.txt", " error sent inserting \n", FILE_APPEND | LOCK_EX);
-                    }
-
 //                    echo $index." is success\n";
                     file_put_contents($log_file, "\n".$leads_counter." - ".$_FILES['file']['name']." - is success\n", FILE_APPEND | LOCK_EX);
 				} else {
@@ -169,14 +161,6 @@
 				}
 			}
 		}
-
-//        try {
-//            file_put_contents("log_test.txt", $uploaded_file_id." - ".$leads_counter."\n", FILE_APPEND | LOCK_EX);
-//            pushSentLeadsCount($uploaded_file_id, $leads_counter, $mysqli);
-//        } catch (Exception $e) {
-//            file_put_contents("log_test.txt", " error sent inserting \n", FILE_APPEND | LOCK_EX);
-//        }
-
 
 //		if(count($array_items) > 0){
 //			$fp = fopen($newFileNameDownload, 'w');
@@ -250,20 +234,6 @@
             return $insert_id;
         }
     }
-
-
-    function pushSentLeadsCount($file_id, $sent_count, $context) {
-        $sql = $context->prepare("UPDATE csv_uploaded_files
-		SET sent = ?
-		WHERE
-		id = ?
-		LIMIT 1");
-        $sql->bind_param("ii", $sent_count, $file_id);
-        $result = $sql->execute();
-        $sql->close();
-        return $result;
-    }
-
 
 	function remove_utf8_bom($text)
 	{

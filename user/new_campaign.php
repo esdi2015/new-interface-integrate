@@ -63,6 +63,7 @@ if(!empty($_POST))
     $campaign["post_url"] = trim($_POST["post_url"]);
     $campaign["email_field"] = trim($_POST["email_field"]);
     $campaign["account_id"] = trim($_POST["account_select"]);
+    $campaign["leads_goal"] = trim($_POST["leads_goal"]);
 
     $new_campaign = createCampaign($campaign);
     if ($new_campaign == true) {
@@ -81,6 +82,10 @@ echo "
 <p>
 <label>Campaign Name:</label>
 <input type='text' name='campaign_name' class='form-control' value='".$_POST["campaign_name"]."' />
+</p>
+<p>
+<label>Leads goal:</label>
+<input type='text' name='leads_goal' class='form-control' value='".$_POST["leads_goal"]."' />
 </p>
 <p>
 <label>Source ID:</label>

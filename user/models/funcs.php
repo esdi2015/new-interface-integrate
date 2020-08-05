@@ -333,6 +333,106 @@ function getAccountCampaigns($account_id=null)
 }
 
 
+
+function insertRemoteCampaignStatsBatch($stats) {
+    global $mysqli;
+    $i = 0;
+    $stmt = $mysqli->prepare("INSERT INTO api_leads_stats
+            (campaign_id, source_id, status, goal, accepted, rejected)
+            VALUES
+            (?, ?, ?, ?, ?, ?)");
+    if (is_array($stats)) {
+        foreach($stats as $k=>$stat) {
+            if (!empty($stat['short_id'])) {
+                $stmt->bind_param("issiii", $k, $stat['short_id'], $stat['status'], $stat['goal'], $stat['accepted'], $stat['rejected']);
+                $stmt->execute();
+                $i++;
+            }
+        }
+    }
+
+    $stmt->close();
+    return ($i);
+}
+
+
+
+function fetchAllCampaignsStats($offset, $records_limit, $user_id=null)
+{
+    global $mysqli;
+    $result = array();
+
+    $sql = $mysqli->prepare("SELECT uc.id, -- f.user_id, f.uploaded_at, f.filename, f.ip,
+                                           COALESCE(SUM(f.sent), '') AS sent_count,
+                                           COALESCE(SUM(lsp.passCount), '') AS pass_count,
+                                           COALESCE(SUM(ls.errCount), '') AS errors_count,
+                                           -- f.errors_count,
+                                           uc.source_alias,
+                                           uc.title,
+                                           COALESCE(ua.title, '') as acc_title,
+                                           uc.source_id,
+                                           uc.status as campaign_status,
+                                           uc.leads_goal,
+                                           ua.organization_id,
+                                           ua.auth_string,
+                                           uc.id as campaign_id
+                                    FROM uc_campaigns uc
+                                    LEFT JOIN csv_uploaded_files f ON uc.id = f.campaign_id
+                                    LEFT JOIN uc_accounts ua ON uc.account_id = ua.id
+                                    LEFT JOIN (
+                                        SELECT COUNT(1) AS errCount, file_id
+                                        FROM csv_status_leads ls
+                                        WHERE ls.status = 'Rejected'
+                                        GROUP BY file_id
+                                        ) AS ls ON ls.file_id = f.id
+                                    LEFT JOIN (
+                                        SELECT COUNT(1) AS passCount, file_id
+                                        FROM csv_status_leads ls
+                                        WHERE ls.status = 'Accepted'
+                                        GROUP BY file_id
+                                        ) AS lsp ON lsp.file_id = f.id
+                                    GROUP BY uc.id
+                                    ORDER BY uc.id DESC
+                                    LIMIT $offset, $records_limit");
+
+
+    $sql->execute();
+    $sql->bind_result($id, $sent_count, $pass_count, $errors_count, $source_alias,
+        $campaign_title, $account_title, $source_id, $campaign_status, $leads_goal, $organization_id, $auth_string,
+        $campaign_id);
+    $current_count = 0;
+    while ($sql->fetch()) {
+        $current_count++;
+        if (isset($_POST['count'])) {
+            if ($current_count == $_POST['count']) {
+                break;
+            }
+        }
+
+//        $user = fetchUserDetailsNew($user_id);
+        $row = array(
+            'id' => $id,
+            'sent_count' => $sent_count,
+            'pass_count' => $pass_count,
+            'errors_count' => $errors_count,
+            'source_alias' => $source_alias,
+            'campaign_title' => $campaign_title,
+            'account_title' => $account_title,
+            'source_id' => $source_id,
+            'campaign_status' => $campaign_status,
+            'leads_goal' => (!is_null($leads_goal)) ? $leads_goal : "",
+            'organization_id' => $organization_id,
+            'auth_string' => $auth_string,
+            'campaign_id' => $campaign_id
+        );
+        array_push($result, $row);
+
+    }
+    $sql->close();
+    return $result;
+}
+
+
 function fetchAllCampaigns()
 {
     global $mysqli,$db_table_prefix;
@@ -344,15 +444,18 @@ function fetchAllCampaigns()
 		c.source_alias,
 		c.title,
 		c.post_url,
-		c.status
-		FROM ".$db_table_prefix."campaigns c, ".$db_table_prefix."accounts a
-		WHERE c.account_id = a.id");
+		c.status,
+		c.leads_goal
+		FROM ".$db_table_prefix."campaigns c
+		LEFT JOIN ".$db_table_prefix."accounts a ON c.account_id = a.id
+		ORDER BY c.id DESC");
 
     $stmt->execute();
-    $stmt->bind_result($id, $acc_name, $source_id, $source_alias, $title, $post_url, $status);
+    $stmt->bind_result($id, $acc_name, $source_id, $source_alias, $title, $post_url, $status, $leads_goal);
     while ($stmt->fetch()){
         $row[] = array('id' => $id, 'acc_name' => $acc_name, 'source_id' => $source_id,
-            'source_alias' => $source_alias, 'title' => $title, 'post_url' => $post_url, 'campaign_status' => $status);
+            'source_alias' => $source_alias, 'title' => $title, 'post_url' => $post_url, 'campaign_status' => $status,
+            'leads_goal' => $leads_goal);
     }
     $stmt->close();
     return ($row);
@@ -371,17 +474,18 @@ function fetchCampaignDetails($id)
 		c.title,
 		c.post_url,
 		c.email_field,
-		c.status
+		c.status,
+		c.leads_goal
 		FROM ".$db_table_prefix."campaigns c
 		WHERE c.id = ?");
 
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    $stmt->bind_result($id, $account_id, $source_id, $source_alias, $title, $post_url, $email_field, $status);
+    $stmt->bind_result($id, $account_id, $source_id, $source_alias, $title, $post_url, $email_field, $status, $leads_goal);
     while ($stmt->fetch()){
         $row = array('id' => $id, 'account_id' => $account_id, 'source_id' => $source_id,
             'source_alias' => $source_alias, 'title' => $title, 'post_url' => $post_url, 'email_field' => $email_field,
-            'campaign_status' => $status);
+            'campaign_status' => $status, 'leads_goal' => $leads_goal);
     }
     $stmt->close();
     return ($row);
@@ -423,13 +527,14 @@ function createCampaign($campaign)
         source_alias,
         title,
         post_url,
-        email_field
+        email_field,
+        leads_goal
 		)
 		VALUES (
-		?, ?, ?, ?, ?, ?
+		?, ?, ?, ?, ?, ?, ?
 		)");
-    $stmt->bind_param("isssss", $campaign["account_id"], $campaign["source_id"], $campaign["source_alias"],
-                      $campaign["title"], $campaign["post_url"], $campaign["email_field"]);
+    $stmt->bind_param("isssssi", $campaign["account_id"], $campaign["source_id"], $campaign["source_alias"],
+                      $campaign["title"], $campaign["post_url"], $campaign["email_field"], $campaign["leads_goal"]);
     $result = $stmt->execute();
     $stmt->close();
     return $result;
@@ -448,11 +553,12 @@ function updateCampaign($campaign)
         title = ?,
         post_url = ?,
         email_field = ?,
-        status = ?
+        status = ?,
+        leads_goal = ?
 		WHERE id = ?");
-    $stmt->bind_param("issssssi", $campaign["account_id"], $campaign["source_id"], $campaign["source_alias"],
+    $stmt->bind_param("issssssii", $campaign["account_id"], $campaign["source_id"], $campaign["source_alias"],
         $campaign["title"], $campaign["post_url"], $campaign["email_field"], $campaign["campaign_status"],
-        $campaign["id"]);
+        $campaign["leads_goal"], $campaign["id"]);
     $result = $stmt->execute();
     $stmt->close();
     return $result;

@@ -5,11 +5,12 @@
 <div class="table-responsive result_content">
     <table id="records_table" class="table table-hover table-condensed table-bordered" style="table-layout:auto;">
         <tr>
-            <th>ID</th>
-            <th>Uploaded at</th>
-            <th>File name</th>
-            <th>Errors</th>
-            <th>Download</th>
+            <th></th>
+<!--            <th>ID</th>-->
+<!--            <th>Uploaded at</th>-->
+<!--            <th>File name</th>-->
+<!--            <th>Errors</th>-->
+<!--            <th>Download</th>-->
         </tr>
     </table>
 </div>
@@ -46,7 +47,7 @@
                     .hide();
             },
             success: function(response) {
-            	var headHtml = '<tr><th>ID</th><th>Uploaded at</th><th>File name</th><th>IP</th><th>Sent</th><th>Passed</th><th>Errors</th><th>Campaign</th>';
+            	var headHtml = '<tr><th>ID</th><th>Uploaded at</th><th>File name</th><th>IP</th><th>Lead goal</th><th>Sent</th><th>Accepted</th><th>Rejected</th>';
                 
                 if(showAll){
                 	headHtml += '<th>User</th>';
@@ -66,10 +67,10 @@
                     trHTML += '<td>' + item.uploaded_at + '</td>';
                     trHTML += '<td>' + item.filename + '</td>';
                     trHTML += '<td>' + item.ip + '</td>';
+                    trHTML += '<td>' + '' + '</td>';
                     trHTML += '<td>' + item.sent_count + '</td>';
-                    trHTML += '<td>' + '' + '</td>';
+                    trHTML += '<td>' + item.pass_count + '</td>';
                     trHTML += '<td>' + item.errors_count + '</td>';
-                    trHTML += '<td>' + '' + '</td>';
                     if(showAll){
                     	trHTML += '<td>' + item.user_id + '</td>';
                     }

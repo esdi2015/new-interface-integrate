@@ -56,7 +56,7 @@ $campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
                     echo "
                     <table class='table table-condensed'>
                         <tr>
-                            <th>Campaign</th><th>Account</th><th>Source ID</th><th>Source Alias</th><th>Status</th><th></th>
+                            <th>Campaign</th><th>Leads goal</th><th>Account</th><th>Source ID</th><th>Source Alias</th><th>Status</th><th></th>
                         </tr>";
 
                         //Cycle through users
@@ -64,6 +64,7 @@ $campaignData = fetchAllCampaigns(); //Fetch information for all Campaigns
                         echo "
                         <tr>
                             <td><a href='admin_campaign.php?id=".$v1['id']."'>".$v1['title']."</a></td>
+                            <td>".$v1['leads_goal']."</td>
                             <td>".$v1['acc_name']."</td>
                             <td>".$v1['source_id']."</td>
                             <td>".$v1['source_alias']."</td>
