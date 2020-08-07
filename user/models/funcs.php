@@ -454,6 +454,32 @@ function fetchCachedCampaignIds($campaign_ids) {
 }
 
 
+function fetchCachedCampaignStatsByCampaignIds($campaign_ids) {
+    global $mysqli;
+    $result = array();
+
+    $sql = $mysqli->prepare("SELECT als.campaign_id, als.goal, als.accepted, als.rejected
+                             FROM api_leads_stats als
+                             WHERE als.campaign_id in ($campaign_ids)");
+
+//    print_r($sql);
+    $sql->execute();
+    $sql->bind_result($campaign_id, $goal, $accepted, $rejected);
+    while ($sql->fetch()) {
+        $row[$campaign_id] = array(
+            'campaign_id' => $campaign_id,
+            'goal' => $goal,
+            'accepted' => $accepted,
+            'rejected' => $rejected
+        );
+//        array_push($result, $row);
+    }
+    $sql->close();
+    $result = $row;
+    return $result;
+}
+
+
 function fetchAllCampaigns()
 {
     global $mysqli,$db_table_prefix;

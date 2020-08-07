@@ -53,71 +53,10 @@ function fetchSingleCampaignStats()
     return ($row);
 }
 
-
-
-/*
-
-SELECT
-    c.id,
-    a.title as acc_name,
-    c.source_id,
-    c.source_alias,
-    c.title,
-    SUM(uf.sent),
-    c.post_url,
-    c.status
-FROM uc_campaigns c
-JOIN uc_accounts a ON c.account_id = a.id
-LEFT JOIN csv_uploaded_files uf ON c.id = uf.campaign_id
-WHERE uf.campaign_id IS NOT NULL
-GROUP BY uf.campaign_id
-ORDER BY c.id DESC
-
-=======================
-
-SELECT
-    c.id,
-    a.title as acc_name,
-    c.source_id,
-    c.source_alias,
-    c.title,
-    SUM(uf.sent),
-    -- uf.sent,
-    SUM(lsp.passCount) AS pass_count,
-    SUM(ls.errCount) AS errors_count,
-    c.post_url,
-    c.status
-FROM uc_campaigns c
-JOIN uc_accounts a ON c.account_id = a.id
-LEFT JOIN csv_uploaded_files uf ON c.id = uf.campaign_id
-LEFT JOIN (
-    SELECT COUNT(1) AS errCount, file_id
-    FROM csv_status_leads ls
-    WHERE ls.status = 'Rejected'
-    GROUP BY file_id
-) AS ls ON ls.file_id = uf.id
-LEFT JOIN (
-    SELECT COUNT(1) AS passCount, file_id
-    FROM csv_status_leads ls
-    WHERE ls.status = 'Accepted'
-    GROUP BY file_id
-) AS lsp ON lsp.file_id = uf.id
-WHERE uf.campaign_id IS NOT NULL
-GROUP BY uf.campaign_id
-ORDER BY c.id DESC
--- ORDER BY uf.id DESC
-
-
-*/
-
-
-
 if (!securePage($_SERVER['PHP_SELF'])){die();}
 if(isUserLoggedIn()) {
 if ($loggedInUser->checkPermission(array(2,3))){
 $campaignData = fetchCampaignsStats(); //Fetch information for all Campaigns
-
-//print_r($campaignData);
 
 ?>
 <!DOCTYPE html>
@@ -164,6 +103,10 @@ $campaignData = fetchCampaignsStats(); //Fetch information for all Campaigns
           <div class="row">
             <div class="col-lg-12">
                 <div id="result_div">
+                    <div id="loadingDiv" class="container text-center">
+                        <div><img src="/images/loading.gif" width="72" height="72" /></div>
+                        <div class="sidebar-brand" style="color: #c00306; font-size: x-large;">Data loading. Please wait</div>
+                    </div>
                     <div class="table-responsive result_content">
                         <table id="records_table" class="table table-hover table-condensed table-bordered" style="table-layout:auto;">
                             <tr>
@@ -245,6 +188,9 @@ $campaignData = fetchCampaignsStats(); //Fetch information for all Campaigns
           <?php if (!isset($_GET["campaign_id"])){ ?>
           <script type="text/javascript">
               function create_table(page, count) {
+                  $('#records_table').hide();
+                  $('.pagination_bottom').hide();
+                  $('#loadingDiv').show();
                   var form_data2 = new FormData();
                   <?php
                   if ($IS_CAMPAIGN_MANAGER == true && $IS_SUPER_ADMIN == false && $IS_ADMIN == false) {echo "showAll = false;";}
@@ -268,6 +214,8 @@ $campaignData = fetchCampaignsStats(); //Fetch information for all Campaigns
                       data: form_data2,
                       type: 'post',
                       complete: function() {
+                          $('#records_table').show();
+                          $('.pagination_bottom').show();
                           $('#loadingDiv')
                               .hide();
                       },
@@ -296,7 +244,8 @@ $campaignData = fetchCampaignsStats(); //Fetch information for all Campaigns
                               }
                               trHTML += '<td><a href="/user/stats_campaigns.php?campaign_id=' + item.id + '" target="_blank">' + item.campaign_title + '</a></td>';
                               trHTML += '<td>' + item.leads_goal + '</td>';
-                              trHTML += '<td>' + item.sent_count + '</td>';
+//                              trHTML += '<td>' + item.sent_count + '</td>';
+                              trHTML += '<td>' + '' + '</td>';
                               trHTML += '<td>' + item.pass_count + '</td>';
                               trHTML += '<td>' + item.errors_count + '</td>';
                               trHTML += '<td>' + item.account_title + '</td>';

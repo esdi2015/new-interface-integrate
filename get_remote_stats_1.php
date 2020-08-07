@@ -3,6 +3,7 @@ require_once('user/models/db-settings.php');
 require_once('config.php');
 require_once('user/models/funcs.php');
 
+//$start_timestamp = time() ;
 
 function get_source_ids($data) {
     $source_ids = array();
@@ -15,13 +16,13 @@ function get_source_ids($data) {
 
 
 function prepare_request_url($org_id, $source_id) {
-    $url = 'http://api.integrate.com/api/organizations/'.$org_id.'/contracts?query='.$source_id;
+    $url = 'https://api.integrate.com/api/organizations/'.$org_id.'/contracts?query='.$source_id;
     return $url;
 }
 
 
 function prepare_header($auth_token) {
-    $header = "accept: application/json\r\n"."Authorization: ".$auth_token." \r\n";
+    $header = "Accept: application/json\r\n"."Authorization: ".$auth_token." \r\n";
     return $header;
 }
 
@@ -39,6 +40,59 @@ function send_stats_request($url, $header) {
     }
     return $result;
 }
+
+
+function _isCurl(){
+    return curl_version();
+}
+
+
+function batch_get_stats_request($source_ids) {
+
+    $ch = array();
+    $response = array();
+
+    foreach($source_ids as $k=>$source_id) {
+        $headers = array();
+        $headers[] = "accept: application/json";
+        $headers[] = "Authorization: ".$source_id['token'];
+
+        $stats_url = prepare_request_url($source_id['org_id'], $source_id['source_id']);
+
+        $ch[$source_id['campaign_id']] = curl_init();
+        curl_setopt($ch[$source_id['campaign_id']], CURLOPT_URL, $stats_url);
+        curl_setopt($ch[$source_id['campaign_id']], CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch[$source_id['campaign_id']], CURLOPT_RETURNTRANSFER, true);
+    }
+
+    $mh = curl_multi_init();
+
+    foreach($source_ids as $k=>$source_id) {
+        curl_multi_add_handle($mh, $ch[$source_id['campaign_id']]);
+    }
+
+    //execute the multi handle
+    do {
+        $status = curl_multi_exec($mh, $active);
+        if ($active) {
+            curl_multi_select($mh);
+        }
+    } while ($active && $status == CURLM_OK);
+
+
+    foreach($ch as $c) {
+        curl_multi_remove_handle($mh, $c);
+    }
+
+    curl_multi_close($mh);
+
+    foreach($ch as $k=>$c) {
+        $request_result = curl_multi_getcontent($c);
+        $response[$k] = parse_stats_response($request_result);
+    }
+    return $response;
+}
+
 
 
 function parse_stats_response($stats_response) {
@@ -61,10 +115,10 @@ function stats_query_execute($source_id) {
     return $result;
 }
 
-//$offset = 0;
-//$records_limit = 20;
+$offset = 40;
+$records_limit = 20;
 
-//$campaign_stats_data = fetchAllCampaignsStats($offset, $records_limit);
+$campaign_stats_data = fetchAllCampaignsStats($offset, $records_limit);
 
 function combineCampaignsStats($source_data) {
     $source_ids = get_source_ids($source_data);
@@ -79,11 +133,17 @@ function combineCampaignsStats($source_data) {
     $campaign_ids_str = join(",",$campaign_ids_arr);
 
     $cached_campaign_ids = fetchCachedCampaignIds($campaign_ids_str);
+    $source_ids_filtered = array();
 
     foreach($source_ids as $k=>$source_id) {
         if (!in_array($source_id['campaign_id'], $cached_campaign_ids)) {
-            $stats_res[$source_id['campaign_id']] = stats_query_execute($source_id);
+//            $stats_res[$source_id['campaign_id']] = stats_query_execute($source_id);
+            $source_ids_filtered[] = $source_id;
         }
+    }
+
+    if (count($source_ids_filtered) > 0) {
+        $stats_res = batch_get_stats_request($source_ids_filtered);
     }
 
     $insert_stats = null;
@@ -103,8 +163,12 @@ function combineCampaignsStats($source_data) {
     return $source_data;
 }
 
-//$result = combineCampaignsStats($campaign_stats_data);
+$result = combineCampaignsStats($campaign_stats_data);
 
-//print_r($result);
+print_r($result);
+//print_r("\n".(time() - $start_timestamp));
+//echo phpinfo();
+
+
 
 ?>
